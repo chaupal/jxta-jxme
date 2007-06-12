@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="dist" name="jxta-midp-tictactoe-demo">
+
+  <!-- if you get a taskdef not found error, do an 'ant tools' at
+    the top level -->
+  <taskdef name="jad" classname="net.jxta.j2me.tools.Jad"/>
+
+  <property environment="env"/>
+  <property name="midp_lib" value="${env.MIDP_HOME}/lib/midpapi.zip"/>
+  <property name="preverify_exec" value="${env.MIDP_HOME}/bin/preverify"/>
+  <property name="emulator_exec" value="${env.MIDP_HOME}/bin/emulator"/>
+
+  <!-- needed to build midp4palm -->
+  <property name="converter_jar" 
+            value="${env.MIDP4PALM_HOME}/Converter/Converter.jar"/>
+
+  <property name="project" value="tictactoe"/>
+  <property name="src" value="src"/>
+  <property name="build" value="classes_unverified"/>
+  <property name="preverify" value="classes"/>
+  <property name="dist" value="dist"/>
+  <property name="lib" value="lib"/>
+  <property name="bin" value="bin"/>
+  <property name="javadoc" value="doc"/>
+  <property name="res" value="res"/>
+  <property name="debug" value="off"/>
+  <property name="jxta_lib" value="../../dist/jxta-cldc.jar"/>
+
+  <target name="prepare">
+    <tstamp/>
+    <mkdir dir="${build}"/>
+    <mkdir dir="${preverify}"/>
+    <mkdir dir="${dist}"/>
+    <mkdir dir="${lib}"/>
+  </target>
+
+  <target depends="prepare" name="prepare_lib">
+    <copy file="${jxta_lib}" todir="${lib}"/>
+  </target>
+
+  <target depends="prepare_lib" name="compile">
+    <javac destdir="${build}" 
+           srcdir="${src}" 
+           classpath="${jxta_lib}"
+           bootclasspath="${midp_lib}"
+	   debug="${debug}"
+	   target="1.1"/>
+    <echo message="Preverifying..."/>
+    <exec dir="." executable="${preverify_exec}">
+	<arg line = "-classpath ${midp_lib}"/>
+	<arg line = "-d ${preverify}"/>
+	<arg line = "${build}"/>
+    </exec>
+  </target>
+
+  <target depends="compile" name="dist">
+    <unjar src="${jxta_lib}"
+           dest="${preverify}"/>
+    <!-- delete jxta-midp's manifest -->
+    <delete dir="${preverify}/META-INF"/>
+    <jar basedir="${preverify}"
+	 jarfile="${dist}/${project}.jar"
+	 manifest="${bin}/MANIFEST.MF">           
+         <fileset dir="${res}"/>
+    </jar>
+    <copy file="${bin}/${project}.jad" todir="${dist}"/>
+    <jad jar="${dist}/${project}.jar" jad="${dist}/${project}.jad"/>
+  </target>
+
+  <target depends="dist" name="run">
+    <exec dir="." 
+          executable="${emulator_exec}"
+          failonerror="true">
+	  <arg line = "-classpath ${dist}/${project}.jar"/>
+	  <arg line = "-Xdescriptor:${dist}/${project}.jad"/>
+	  <arg line = "-Xdevice:Motorola_i85s"/>
+    </exec>
+  </target>
+
+  <target depends="dist" name="midp4palm">
+    <java classname="com.sun.midp.palm.database.MakeMIDPApp" 
+          fork="true"
+          dir="${dist}"
+          classpath="${converter_jar}">
+      <!-- use JXTA for the creator for now -->
+	  <arg line = "-creator JXTA -jad ${project}.jad ${project}.jar"/>
+    </java>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build}"/>
+    <delete dir="${preverify}"/>
+    <delete dir="${dist}"/>
+    <delete dir="${lib}"/>
+  </target>
+</project>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="dist" name="jxta-midp-chat-demo">
+
+  <!-- if you get a taskdef not found error, do an 'ant tools' at
+    the top level -->
+  <taskdef name="jad" classname="net.jxta.j2me.tools.Jad"/>
+
+  <property environment="env"/>
+  <property name="midp_lib" value="${env.DOJA_HOME}/lib/dojaapi.jar"/>
+  <property name="preverify_exec" value="${env.DOJA_HOME}/bin/preverify"/>
+  <property name="doja_testlib" value="${env.DOJA_HOME}/lib/dojatest.zip"/>
+  <property name="doja_envlib" value="${env.DOJA_HOME}/lib/kenv.zip"/>
+ 
+  <property name="project" value="chat"/>
+  <property name="src" value="src"/>
+  <property name="build" value="classes_unverified"/>
+  <property name="preverify" value="classes"/>
+  <property name="dist" value="dist"/>
+  <property name="lib" value="lib"/>
+  <property name="bin" value="bin"/>
+  <property name="javadoc" value="doc"/>
+  <property name="debug" value="off"/>
+  <property name="jxta_lib" value="../../dist/jxta-doja.jar"/>
+  <property name="kevm.home" value="-Dkvem.home=${env.DOJA_HOME}"/>
+  <property name="source.url" value="-Ddoja.sourceURL=http://proxy.jxtahosts.net:9700"/>
+  <property name="network.access" value="-Ddoja.networkAccess=enable"/>
+  <property name="emulator_class" value="com.nttdocomo.dojaemu.tests.Tester"/>
+
+  <path id="classpath">
+       <pathelement location="${doja_testlib}"/>
+       <pathelement location="${doja_envlib}"/>
+  </path>
+
+  <target name="prepare">
+    <tstamp/>
+    <mkdir dir="${build}"/>
+    <mkdir dir="${preverify}"/>
+    <mkdir dir="${dist}"/>
+    <mkdir dir="${lib}"/>
+  </target>
+
+  <target depends="prepare" name="prepare_lib">
+    <copy file="${jxta_lib}" todir="${lib}"/>
+  </target>
+
+  <target depends="prepare_lib" name="compile">
+    <javac destdir="${build}" 
+           srcdir="${src}" 
+           classpath="${jxta_lib}"
+           bootclasspath="${midp_lib}"
+	   debug="${debug}"
+	   target="1.1"/>
+    <echo message="Preverifying..."/>
+    <exec dir="." executable="${preverify_exec}">
+	<arg line = "-classpath ${midp_lib}"/>
+	<arg line = "-d ${preverify}"/>
+	<arg line = "${build}"/>
+    </exec>
+  </target>
+
+  <target depends="compile" name="dist">
+    <unjar src="${jxta_lib}"
+           dest="${preverify}"/>
+    <!-- delete jxta-midp's manifest -->
+    <delete dir="${preverify}/META-INF"/>
+    <jar basedir="${preverify}"
+	 jarfile="${dist}/${project}.jar"
+	 manifest="${bin}/MANIFEST.MF">           
+    </jar>
+    <copy file="${bin}/${project}.jam" todir="${dist}"/>
+    <jad jar="${dist}/${project}.jar" jad="${dist}/${project}.jam"/>
+  </target>
+
+  <target depends="dist" name="run">
+    <java classname="${emulator_class}"
+          fork="true"
+          dir=".">
+          <classpath refid="classpath"/>
+          <jvmarg line = "${kevm.home}"/>
+          <jvmarg line = "${source.url}"/>
+          <jvmarg line = "${network.access}"/>
+	  <arg line = "jam"/>
+	  <arg line = "phone1color"/>
+	  <arg line = "${dist}/${project}.jam"/>
+    </java>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build}"/>
+    <delete dir="${preverify}"/>
+    <delete dir="${dist}"/>
+    <delete dir="${lib}"/>
+  </target>
+</project>

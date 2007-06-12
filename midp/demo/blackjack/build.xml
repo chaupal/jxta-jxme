@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="dist" name="jxme-blackjack-demo">
+
+  <property file="build.properties"/>
+
+  <!-- set global properties for this build -->
+  <property name="src" value="src"/>
+  <property name="build" value="classes_unverified"/>
+  <property name="preverify" value="classes"/>
+  <property name="dist" value="dist"/>
+  <property name="javadoc" value="doc"/>
+  <property name="manifest" value="manifest"/>
+  <property name="res" value="res"/>
+  <property name="jad" value="jad"/>
+
+  <target name="prepare">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+    <mkdir dir="${preverify}"/>
+    <mkdir dir="${dist}"/>
+  </target>
+
+  <target depends="prepare" name="compile">
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac destdir="${build}" srcdir="${src}" bootclasspath="${midp_lib}" />
+    <echo message="Preverifying..."/>
+    <exec dir="." executable="${preverify_exec}">
+	<arg line = "-classpath ${midp_lib}"/>
+	<arg line = "-d ${preverify}"/>
+	<arg line = "${build}"/>
+    </exec>
+  </target>
+
+  <target depends="compile" name="dist">
+    <!-- Put everything in ${build} into the jar file -->
+    <jar basedir="${preverify}"
+	 jarfile="${dist}/blackjack.jar"
+	 manifest="${manifest}/MANIFEST.MF">
+           
+	 <fileset dir="${jad}" />
+         <fileset dir="${res}" />
+    </jar>
+    <copy file="${jad}/blackjack.jad" todir="${dist}"/>
+  </target>
+
+  <target name="clean">
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${build}"/>
+    <delete dir="${preverify}"/>
+    <delete dir="${dist}"/>
+  </target>
+</project>

@@ -1,0 +1,10 @@
+MIDlet-1: JxtaTicTacToe, TicTacToe.png, net.jxta.midp.demo.tictactoe.TicTacToe
+MIDlet-Jar-Size: 
+MIDlet-Jar-URL: tictactoe.jar
+MIDlet-Name: JxtaTicTacToe
+MIDlet-Vendor: JXTA.org
+MIDlet-Version: 1.0
+RelayHost: 209.25.154.233
+RelayPort: 9700
+Identity: anonymous
+PollInterval: 1

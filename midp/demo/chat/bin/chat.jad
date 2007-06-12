@@ -1,0 +1,11 @@
+MIDlet-1: JxtaMidpChat, JxtaMidpChat.png, net.jxta.midp.demo.chat.Chat
+MIDlet-Jar-Size: 17557
+MIDlet-Jar-URL: chat.jar
+MIDlet-Name: JxtaMidpChat
+MIDlet-Vendor: JXTA.org
+MIDlet-Version: 1.0
+RelayHost: 209.25.154.233
+RelayPort: 9900
+Identity: anonymous
+PollInterval: 1
+ChatMode: group

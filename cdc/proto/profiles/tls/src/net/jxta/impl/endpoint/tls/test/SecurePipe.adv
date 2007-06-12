@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE jxta:PipeAdvertisement>
+<jxta:PipeAdvertisement xmlns:jxta="http://jxta.org">
+	<Id>
+		urn:jxta:uuid-59616261646162614E50472050325033993B307AF0B643B192E7808B390A2DE704
+	</Id>
+	<Type>
+		JxtaUnicastSecure
+	</Type>
+	<Name>
+		SecureUnicastPipe Test
+	</Name>
+	<Desc>
+		TLS
+	</Desc>
+</jxta:PipeAdvertisement>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="compile" name="jxme-chat-demo">
+
+  <property name="src" value="."/>
+  <property name="build" value="classes"/>
+  <property name="optimize" value="on"/>
+  <property name="debug" value="off"/>
+  <property name="jxta_cdc" value="../../dist/jxme-cdc.jar"/>
+  <property name="log4j" value="../../lib/log4j.jar"/>
+
+  <target name="prepare">
+    <tstamp/>
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target depends="prepare" name="compile">
+    <javac classpath="${jxta_cdc}:${log4j}"
+           destdir="${build}" 
+           srcdir="${src}" 
+	   debug="${debug}"
+	   target="1.1"/>
+  </target>
+
+  <target depends="compile" name="run">
+    <java classname="ChatDemo" 
+          fork="true"
+          classpath="${build}:${jxta_cdc}:${log4j}"/>
+  </target>
+  <target depends="compile" name="rung">
+    <java classname="GroupDemo"
+          fork="true"
+          classpath="${build}:${jxta_cdc}:${log4j}"/>
+  </target>
+
+  <target name="clean">
+    <delete dir="${build}"/>
+  </target>
+</project>

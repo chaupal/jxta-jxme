@@ -1,0 +1,6 @@
+App-1: JxtaDojaChat, net.jxta.doja.demo.chat.Chat
+AppName: JxtaDojaChat
+AppVendor: JXTA.org
+AppVersion: 1.0
+MicroEdition-Configuration: KVM
+MicroEdition-Profile: DoJa

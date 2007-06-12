@@ -1,0 +1,7 @@
+PackageURL = chat.jar
+AppName = JxtaDojaChat
+AppClass = net.jxta.doja.demo.chat.Chat
+AppVer = 1.0
+UseNetwork = http
+SPsize = 30000
+LastModified = Fri, 16 Aug 2002 18:25

@@ -1,0 +1,81 @@
+JXMEChess
+mars 2003
+
+Author: Pascal Maugeri (pascalmaugeri@yahoo.com)
+Last modified: 28/03/2003
+
+
+1. Installation
+
+Install the JXME project as described here : http://jxme.jxta.org/build.html
+
+The JXMEChess application is included in JXME and should be present in the 
+directory : jxme/midp/demo/chess
+
+Compile the JXMEChess application :
+  cd jxme/midp/demo/chess
+  ant
+
+To run JXMEChess :
+  cd jxme/midp/demo/chess
+  ant run
+
+
+
+2. Using the JXMEChess demo
+
+- open two shell windows and run 2 instances of JXMEChess :
+  cd jxme/midp/demo/chess
+  ant
+
+- "Launch" the MIDlets from the phone emulators.
+
+- click "Setting"
+
+- you can use your own JXTA proxy or this remote one : 
+    Proxy host : 209.25.154.233
+    Proxy port : 9700
+
+- use 2 different screen name in each MIDlet instance (eg. player1 and player2)
+
+- click OK in both emulators (it will save your settings in the MIDlet RMS)
+
+- connect your MIDlets : Menu/Connect. You should see in your shell windows these
+  messages :
+
+     [exec] Connect took : 1170 ms.
+     [exec] Saving the persistent state in RMS : [B@ea0ef881
+     [exec] listen query id: 0
+     [exec] player1> 1 message received.
+     [exec]    response = info
+     [exec]    requestId = 0
+     [exec]    type = PIPE
+     [exec]    name = JXTAChess-player1
+     [exec]    id = urn:jxta:uuid-59616261646162614E504720503250331DEC91B416044721ABAC8BDB24CA90D404
+     [exec]    arg = JxtaUnicast
+     [exec]    EndpointDestinationAddress = http://JxtaHttpClientuuid-59616261646162614A7874615032503350C5809E076B415BA4CB9559832F786E03/
+     [exec]    EndpointSourceAddress = http://209.25.154.233:9700/
+     [exec] player1> 1 message received.
+     [exec]    response = success
+     [exec]    requestId = 0
+     [exec]    EndpointDestinationAddress = http://JxtaHttpClientuuid-59616261646162614A7874615032503350C5809E076B415BA4CB9559832F786E03/
+     [exec]    EndpointSourceAddress = http://209.25.154.233:9700/
+
+  
+- then search the connected players in both MIDlets : Menu/Search Players
+
+- once you have seen in the shell windows that both players have found each other
+  start a new game from one MIDlet : Menu/New Game. Choose your opponent and the color
+  to play with.
+
+- on the other MIDlet, you should receive a game invitation :
+  eg. "The player player1 invited you for playing ..."
+  Accept it by pressing "Yes"
+
+- after a few seconds the chessboards are shown on both MIDlets
+
+- the 3 player screen names are shown at the bottom of the chessboard and the
+  name in bold letters has to play.
+
+- use the phone cursor to select a move 
+

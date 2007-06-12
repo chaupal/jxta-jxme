@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="dist" name="jxta-midp">
+
+  <property environment="env"/>
+  <property name="cldc_lib" value="${env.MIDP_HOME}/lib/cldcapi11.jar"/>
+  <property name="midp_lib" value="${env.MIDP_HOME}/lib/midpapi20.jar"/>
+  <property name="doja_lib" value="${env.DOJA_HOME}/lib/dojaapi.jar"/>
+  <property name="doja2_lib" value="${env.DOJA2_HOME}/lib/classes.zip;${env.DOJA2_HOME}/lib/doja_classes.zip"/>
+  <property name="preverifier" value="${env.MIDP_HOME}/bin/preverify1.1"/>
+  <property name="preverifier_doja" value="${env.DOJA_HOME}/bin/preverify.exe"/>
+  <property name="preverifier_doja2" value="${env.DOJA2_HOME}/bin/preverify.exe"/>
+
+  <property name="src" value="src"/>
+  <property name="test" value="test"/>
+  <property name="classes_cdc" value="classes_cdc"/>
+  <property name="classes_cldc_unverified" value="classes_cldc_unverified"/>
+  <property name="classes_doja_unverified" value="classes_doja_unverified"/>
+  <property name="classes_cldc_verified" value="classes_cldc"/>
+  <property name="classes_doja_verified" value="classes_doja"/>
+  <property name="dist" value="dist"/>
+  <property name="javadoc" value="doc"/>
+  <property name="res" value="res"/>
+  <property name="debug" value="off"/>
+  <property name="test_classes" value="test/classes"/>
+  <property name="tools_classes" value="tools/classes"/>
+  <property name="tutorial" value="tutorial"/>
+
+  <!-- build the ant tasks that we need and install them into the
+  correct directory -->
+  <target name="tools">
+    <mkdir dir="${tools_classes}"/>
+    <javac destdir="${tools_classes}" 
+           srcdir="tools"
+	   target="1.1"
+	   source="1.2"/>
+   <jar jarfile="${dist}/jxta-tools.jar">
+      <fileset dir="${tools_classes}"/>
+    </jar>
+    <delete dir="${tools_classes}"/>
+  </target>
+
+  <target name="prepare">
+    <tstamp/>
+    <mkdir dir="${classes_cdc}"/>
+    <mkdir dir="${classes_cldc_unverified}"/>
+    <mkdir dir="${classes_doja_unverified}"/>
+    <mkdir dir="${classes_cldc_verified}"/>
+    <mkdir dir="${classes_doja_verified}"/>
+    <mkdir dir="${dist}"/>
+  </target>
+
+  <target name="test_prepare">
+    <mkdir dir="${test_classes}"/>
+  </target>
+
+  <target depends="prepare" name="compile_cldc">
+    <echo message="Disabling Doja..."/>
+    <javac destdir="${classes_cldc_unverified}" 
+           srcdir="${src}" 
+	   bootclasspath="${cldc_lib}"
+	   classpath="${midp_lib}"
+	   debug="${debug}"
+           includeAntRuntime="false"
+	   source="1.2"
+	   target="1.1">
+      <include name="net/jxta/j2me/*"/>
+      <include name="net/jxta/j2me/cldc/*"/>
+    </javac>
+    <echo message="Preverifying classes..."/>
+    <exec dir="." 
+          executable="${preverifier}"
+          failonerror="true">
+	  <arg line = "-classpath ${cldc_lib}:${midp_lib}"/>
+      <arg line = "-d ${classes_cldc_verified}"/>
+      <arg line = "${classes_cldc_unverified}"/>
+    </exec>
+  </target>
+
+  <target depends="prepare" name="compile_doja">
+    <javac destdir="${classes_doja_unverified}" 
+           srcdir="${src}" 
+           bootclasspath="${doja_lib}"
+	   debug="${debug}"
+           includeAntRuntime="false"
+	   source="1.2"
+	   target="1.1">
+      <include name="net/jxta/j2me/*"/>
+      <include name="net/jxta/j2me/doja/*"/>
+    </javac>
+    <echo message="Preverifying classes..."/>
+    <exec dir="." 
+          executable="${preverifier_doja}"
+          failonerror="true">
+      <arg line = "-classpath ${doja_lib}"/>
+      <arg line = "-d ${classes_doja_verified}"/>
+      <arg line = "${classes_doja_unverified}"/>
+    </exec>
+  </target>
+  
+  <target depends="prepare" name="compile_doja2">
+    <javac destdir="${classes_doja_unverified}" 
+           srcdir="${src}" 
+           bootclasspath="${doja2_lib}"
+	   debug="${debug}"
+           includeAntRuntime="false"
+	   source="1.2"
+	   target="1.1">
+      <include name="net/jxta/j2me/*"/>
+      <include name="net/jxta/j2me/doja/*"/>
+    </javac>
+    <echo message="Preverifying classes..."/>
+    <exec dir="." 
+          executable="${preverifier_doja2}"
+          failonerror="true">
+      <arg line = "-classpath ${doja2_lib}"/>
+      <arg line = "-d ${classes_doja_verified}"/>
+      <arg line = "${classes_doja_unverified}"/>
+    </exec>
+  </target>
+
+  <target depends="compile_cldc" name="dist_cldc">
+    <jar jarfile="${dist}/jxta-cldc.jar">
+      <fileset dir="${classes_cldc_verified}"/>
+    </jar>
+    <ant inheritAll="false" dir="demo/chat" target="dist"/>
+    <ant inheritAll="false" dir="demo/tictactoe" target="dist"/>
+  </target>
+
+  <target depends="compile_doja" name="dist_doja">
+    <jar jarfile="${dist}/jxta-doja.jar">
+      <fileset dir="${classes_doja_verified}"/>
+    </jar>
+  </target>
+
+  <target depends="compile_doja2" name="dist_doja2">
+    <jar jarfile="${dist}/jxta-doja.jar">
+      <fileset dir="${classes_doja_verified}"/>
+    </jar>
+  </target>
+
+  <target depends="prepare" name="compile_cdc">
+    <javac destdir="${classes_cdc}" 
+           srcdir="${src}" 
+	   debug="${debug}"
+           includeAntRuntime="false"
+	   source="1.2"
+	   target="1.1">
+      <include name="net/jxta/j2me/*"/>
+      <include name="net/jxta/j2me/cdc/*"/>
+    </javac>
+  </target>
+
+  <target depends="compile_cdc" name="dist_cdc">
+    <jar jarfile="${dist}/jxta-cdc.jar">
+      <fileset dir="${classes_cdc}"/>
+    </jar>
+    <ant inheritAll="false" dir="${tutorial}" target="dist"/>
+    <ant inheritAll="false" dir="demo/chat-pp" target="dist"/>
+  </target>
+
+  <target depends="dist_cldc, dist_cdc, tools" name="dist"/>
+
+  <target name="javadoc">
+    <mkdir dir="${javadoc}"/>
+    <javadoc sourcepath="${src};${tutorial}/src" 
+             classpath="${midp_lib}"
+             access="public"
+	     windowtitle="JXTA for J2ME"
+	     doctitle="JXTA for J2ME"
+	     header="JXTA for J2ME"
+             destdir="${javadoc}">
+      <group title="API" packages="net.jxta.*"/>
+      <group title="Examples" packages="tutorial.*"/>
+      <package name="net.jxta.j2me"/>
+      <package name="tutorial"/>
+    </javadoc>
+  </target>
+
+  <target depends="dist" name="chat">
+    <ant inheritAll="false" dir="demo/chat" target="run"/>
+  </target>
+
+  <target depends="dist_doja" name="chat-doja">
+    <ant inheritAll="false" dir="demo/chat-doja" target="run"/>
+  </target>
+
+  <target depends="dist_doja2" name="dojxta">
+    <ant inheritAll="false" dir="demo/dojxta" target="run"/>
+  </target>
+
+  <target depends="dist" name="tictactoe">
+    <ant inheritAll="false" dir="demo/tictactoe" target="run"/>
+  </target>
+
+  <target depends="dist" name="chat-pp">
+    <ant inheritAll="false" dir="demo/chat-pp" target="run"/>
+  </target>
+
+  <target depends="compile_cldc, test_prepare" name="compile_test">
+    <javac destdir="${test_classes}" 
+           classpath="${classes_cldc_unverified}"
+           srcdir="${test}" 
+	   debug="${debug}"
+           includeAntRuntime="false"
+	   source="1.2"
+	   target="1.1"/>
+  </target>
+
+  <target depends="compile_test" name="test">
+    <java classname="net.jxta.j2me.MessageTest" 
+          fork="true"
+          dir="${test}"
+          classpath="${classes_cldc_unverified}:${test_classes}"/>
+  </target>
+
+  <target name="clean">
+    <delete dir="${classes_cdc}"/>
+    <delete dir="${classes_cldc_unverified}"/>
+    <delete dir="${classes_doja_unverified}"/>
+    <delete dir="${classes_cldc_verified}"/>
+    <delete dir="${classes_doja_verified}"/>
+    <delete dir="${dist}"/>
+    <delete dir="${javadoc}"/>
+    <delete dir="${test_classes}"/>
+    <ant inheritAll="false" dir="demo/chat" target="clean"/>
+    <ant inheritAll="false" dir="demo/tictactoe" target="clean"/>
+    <ant inheritAll="false" dir="demo/chat-pp" target="clean"/>
+    <ant inheritAll="false" dir="demo/chat-doja" target="clean"/>
+    <ant inheritAll="false" dir="demo/dojxta" target="clean"/>
+    <ant inheritAll="false" dir="${tutorial}" target="clean"/>
+  </target>
+</project>

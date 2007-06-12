@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="dist_cdc" name="jxme">
+
+  <property environment="env"/>
+  <property name="lib" value="${basedir}/lib"/>
+  <property name="midp_lib" value="${env.MIDP_HOME}/lib/midpapi.zip"/>
+  <property name="preverifier" value="${env.MIDP_HOME}/bin/preverify"/>
+  <property name="cdc_lib" value="${env.CDC_HOME}/lib/btclasses.zip:${env.CDC_HOME}/lib/foundation.jar"/>
+  
+  <property name="project_name" value="jxme"/>
+  <property name="src" value="src"/>
+  <property name="profiles" value="profiles/comm"/>
+  <property name="test" value="test"/>
+  <property name="classes_cdc" value="classes_cdc"/>
+  <property name="dist" value="dist"/>
+  <property name="javadoc" value="doc"/>
+  <property name="debug" value="on"/>
+  <property name="optimize" value="on"/>
+  <property name="test_classes" value="test/classes"/>
+  <property name="tools_classes" value="tools/classes"/>
+  <property name="tutorial" value="tutorial"/>
+  
+  <fileset id="lib.files" dir="${lib}">
+    <include name="log4j.jar"/>
+  </fileset>
+
+  <path id="compile.classpath">
+      <fileset refid="lib.files"/>
+  </path>
+  <path id="boot.classpath">
+      <pathelement path="${classpath}"/>
+      <fileset refid="lib.files"/>
+      <fileset dir="${env.CDC_HOME}/lib">
+        <include name="btclasses.jar"/>
+        <include name="foundation.jar"/>
+      </fileset>
+   </path>
+
+   <path id="tests.path">
+     <path refid="base.path"/>
+     <pathelement location="testclasses"/>
+   </path>
+
+  <!-- build the ant tasks that we need and install them into the
+  correct directory -->
+  <target name="tools">
+    <mkdir dir="${tools_classes}"/>
+    <javac destdir="${tools_classes}" 
+           srcdir="tools"
+	   target="1.1"/>
+    <jar jarfile="${env.ANT_HOME}/lib/jxta-tools.jar">
+      <fileset dir="${tools_classes}"/>
+    </jar>
+    <delete dir="${tools_classes}"/>
+  </target>
+  
+  <target depends="clean" name="prepare_cdc">
+    <tstamp/>
+    <mkdir dir="${classes_cdc}"/>
+    <mkdir dir="${dist}"/>
+  </target>
+    
+  <target name="prepare">
+    <tstamp/>
+    <mkdir dir="${dist}"/>
+  </target>
+
+  <target name="test_prepare">
+    <mkdir dir="${test_classes}"/>
+  </target>
+
+  <target depends="prepare_cdc" name="compile_cdc">
+    <echo message="Compiling JXME/CDC..."/>
+    <javac classpathref="compile.classpath" destdir="${classes_cdc}"
+	   bootclasspath="${cdc_lib}"
+           srcdir="${src}" 
+           debug="${debug}"
+           optimize="${optimize}"
+           includeAntRuntime="false"
+	   deprecation="false"
+	   target="1.1">
+    </javac>
+    <copy todir="${classes_cdc}/">
+      <fileset dir="${basedir}" > 
+        <include name="log4j.properties"/>
+      </fileset>
+      <fileset dir="${basedir}/src">
+        <include name="net/jxta/impl/config.properties" />
+      </fileset>
+     </copy>
+  </target>
+
+  <target depends="compile_cdc" name="compile_profiles">
+    <echo message="Compiling JXME/CDC profiles ..."/>
+    <javac classpathref="compile.classpath" destdir="${classes_cdc}"
+           bootclasspath="${cdc_lib}"
+           srcdir="${profiles}"
+           debug="${debug}"
+           optimize="${optimize}"
+           includeAntRuntime="false"
+           deprecation="false"
+           target="1.1">
+    </javac>
+  </target>
+
+  <target depends="compile_profiles" name="dist_cdc">
+    <jar jarfile="${dist}/${project_name}-cdc.jar">
+      <fileset dir="${classes_cdc}"/>
+    </jar>
+  </target>
+
+  <target depends="dist_cdc" name="dist"/>
+
+  <target name="javadoc"> 
+    <mkdir dir="${javadoc}"/>
+    <javadoc sourcepath="${src}" 
+             excludepackagenames="net.jxta.impl.*,org.apache.*"
+             bootclasspath="${boot.classpath}"
+             classpath="${compile.classpath}"
+             access="public"
+	     windowtitle="JXTA for J2ME"
+	     doctitle="JXME 2.0 CDC1.1 binding"
+	     header="JXME 2.0 CDC1.1 binding"
+             destdir="${javadoc}"
+             breakiterator="true">
+      <group title="JXTA J2ME API" packages="net.jxta.*" />
+      <link href="http://logging.apache.org/log4j/docs/api/" />
+      <package name="net.jxta.*"/>
+      <sourcepath>
+         <pathelement location="${src}"/>
+      </sourcepath>
+    </javadoc>
+  </target>
+
+  <target depends="dist" name="chat">
+    <ant inheritAll="false" dir="demo/chat" target="run"/>
+  </target>
+  <target name="clean">
+    <delete dir="${classes_cdc}"/>
+    <delete dir="${dist}"/>
+    <delete dir="${javadoc}"/>
+    <delete dir="${test_classes}"/>
+  </target>
+</project>

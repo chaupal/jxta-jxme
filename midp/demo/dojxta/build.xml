@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="dist" name="jxta-midp-chat-demo">
+
+  <!-- if you get a taskdef not found error, do an 'ant tools' at
+    the top level -->
+  <taskdef name="jad" classname="net.jxta.j2me.tools.Jad"/>
+
+  <property environment="env"/>
+  <property name="doja2_lib" value="${env.DOJA2_HOME}/lib/classes.zip;${env.DOJA2_HOME}/lib/doja_classes.zip"/>
+  <property name="preverifier_doja2" value="${env.DOJA2_HOME}/bin/preverify"/>
+  <property name="doja2" value="${env.DOJA2_HOME}/bin/doja.exe"/>
+ 
+  <property name="project" value="chat"/>
+  <property name="src" value="src"/>
+  <property name="build" value="classes_unverified"/>
+  <property name="preverify" value="classes"/>
+  <property name="dist" value="dist"/>
+  <property name="lib" value="lib"/>
+  <property name="bin" value="bin"/>
+  <property name="javadoc" value="doc"/>
+  <property name="debug" value="off"/>
+  <property name="jxta_lib" value="../../dist/jxta-doja.jar"/>
+  <property name="relay.url" value="http://localhost:9700"/>
+
+  <target name="prepare">
+    <tstamp/>
+    <mkdir dir="${build}"/>
+    <mkdir dir="${preverify}"/>
+    <mkdir dir="${dist}"/>
+    <mkdir dir="${lib}"/>
+  </target>
+
+  <target depends="prepare" name="prepare_lib">
+    <copy file="${jxta_lib}" todir="${lib}"/>
+  </target>
+
+  <target depends="prepare_lib" name="compile">
+    <javac destdir="${build}" 
+           srcdir="${src}" 
+           classpath="${jxta_lib}"
+           bootclasspath="${doja2_lib}"
+	   debug="${debug}"
+	   target="1.1"/>
+    <echo message="Preverifying..."/>
+    <exec dir="." executable="${preverifier_doja2}">
+	<arg line = "-classpath ${doja2_lib}"/>
+	<arg line = "-d ${preverify}"/>
+	<arg line = "${build}"/>
+    </exec>
+  </target>
+
+  <target depends="compile" name="dist">
+    <unjar src="${jxta_lib}"
+           dest="${preverify}"/>
+    <!-- delete jxta-midp's manifest -->
+    <delete dir="${preverify}/META-INF"/>
+    <jar basedir="${preverify}"
+	 jarfile="${dist}/${project}.jar"
+	 manifest="${bin}/MANIFEST.MF">           
+    </jar>
+    <copy file="${bin}/${project}.jam" todir="${dist}" overwrite="true">
+       <filterset>
+         <filter token="PACKAGEURL" value="${relay.url}"/>
+       </filterset>
+    </copy>
+    <jad jar="${dist}/${project}.jar" jad="${dist}/${project}.jam"/>
+  </target>
+
+  <target depends="dist" name="run">
+     <exec executable="${doja2}">
+        <arg line="-s device2"/>
+        <arg line="-i ${dist}/${project}.jam"/>
+     </exec> 
+  </target>
+
+  <target name="clean">
+    <delete dir="${build}"/>
+    <delete dir="${preverify}"/>
+    <delete dir="${dist}"/>
+    <delete dir="${lib}"/>
+  </target>
+</project>

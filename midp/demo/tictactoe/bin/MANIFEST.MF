@@ -1,0 +1,6 @@
+MIDlet-1: JxtaTicTacToe, TicTacToe.png, net.jxta.midp.demo.tictactoe.TicTacToe
+MIDlet-Name: JxtaTicTacToe
+MIDlet-Vendor: JXTA.org
+MIDlet-Version: 1.0
+MicroEdition-Configuration: CLDC-1.0
+MicroEdition-Profile: MIDP-1.0

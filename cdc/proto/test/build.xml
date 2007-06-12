@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="compile" name="jxme">
+
+  <property environment="env"/>
+  <property name="lib" value="${basedir}/lib"/>
+  <property name="cdc_lib" value="${env.CDC_HOME}/lib/btclasses.zip:${env.CDC_HOME}/lib/foundation.jar"/>
+  <property name="project_name" value="jxme"/>
+  <property name="src" value="src"/>
+  <property name="test" value="test"/>
+  <property name="classes" value="classes"/>
+  <property name="dist" value="dist"/>
+  <property name="debug" value="on"/>
+  
+  <fileset id="lib.files" dir="${lib}">
+    <include name="*.jar"/>
+  </fileset>
+
+  <fileset id="cdc_classes" dir="../dist">
+    <include name="*.jar"/>
+  </fileset>
+
+  <fileset id="cdc_lib" dir="../lib">
+    <include name="*.jar"/>
+  </fileset>
+
+  <fileset id="test_classes" dir="dist">
+    <include name="*.jar"/>
+  </fileset>
+
+  <path id="compile.classpath">
+      <fileset refid="lib.files"/>
+      <fileset refid="cdc_classes"/>
+      <fileset refid="test_classes"/>
+      <fileset refid="cdc_lib"/>
+  </path>
+
+  <!-- build the ant tasks that we need and install them into the
+  correct directory -->
+  <target name="tools">
+    <mkdir dir="${tools_classes}"/>
+    <javac destdir="${tools_classes}" 
+           srcdir="tools"
+	   target="1.1"/>
+    <jar jarfile="${env.ANT_HOME}/lib/jxta-tools.jar">
+      <fileset dir="${tools_classes}"/>
+    </jar>
+    <delete dir="${tools_classes}"/>
+  </target>
+
+  <target depends="clean" name="prepare">
+    <tstamp/>
+    <mkdir dir="${classes}"/>
+    <mkdir dir="${dist}"/>
+  </target>
+  
+  <target depends="prepare" name="compile">
+    <echo message="Compiling JXME Unit Tests..."/>
+    <javac classpathref="compile.classpath" destdir="${classes}"
+	   bootclasspath="${cdc_lib}"
+           srcdir="${src}" 
+           debug="${debug}"
+           includeAntRuntime="false"
+	   deprecation="false"
+	   target="1.1">
+    </javac>
+  </target>
+ <target name="run" depends="dist" description="Run JUnit test suites">
+   <java classname="junit.swingui.TestRunner" failonerror="yes" fork="yes">
+       <jvmarg value="-DJXTA_HOME=${jxta.home}"/>
+       <classpath refid="compile.classpath" />
+   </java>
+  </target>
+
+  <target depends="compile" name="dist">
+    <jar jarfile="${dist}/${project_name}-test.jar">
+      <fileset dir="${classes}"/>
+    </jar>
+  </target>
+
+  <target name="clean">
+    <delete dir="${classes}"/>
+    <delete dir="${dist}"/>
+  </target>
+</project>

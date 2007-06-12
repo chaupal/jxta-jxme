@@ -1,0 +1,8 @@
+BASE_URL: http://127.0.0.1:8080/blackjack
+DEBUG: true
+MIDlet-1: Blackjack, SmallSpade.png, net.jxme.demo.blackjack.client.gui.BlackjackMidlet
+MIDlet-Jar-Size: 62821
+MIDlet-Jar-URL: blackjack.jar
+MIDlet-Name: Blackjack
+MIDlet-Vendor: JXTA.org
+MIDlet-Version: 1.0
