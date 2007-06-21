@@ -1,0 +1,107 @@
+</dd>
+<script>document.getElementById("main").parentNode.style.display="none";</script>
+<dd id=menubar>
+  <!-- menubar for the main site -->
+  <ul id="main-menubar">
+    <li>
+      <a href="#">Downloads</a>
+      <ul>
+        <li>
+          <a href="http://download.jxta.org/build/release/jxme/2.1.3/">2.1.3</a>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <a href="/servlets/ProjectNewsList">Announcements</a>
+    </li>
+    <li>
+      <a href="/servlets/ProjectMailingListList">Mailing lists</a>
+    </li>
+    <li>
+      <a href="http://forums.java.net/jive/category.jspa?categoryID=34">Discussion forum</a>
+    </li>
+    <li>
+      <a href="#">Developing JXME</a>
+      <ul>
+        <li>
+          <a href="http://jxta-spec.dev.java.net/">JXTA Specification</a>
+        </li>
+        <li>
+          <a href="https://jxta-c.dev.java.net/source/browse/jxta-jxme/">Subversion</a>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <a href="https://jxta-c.dev.java.net/servlets/ProjectMemberList">Membership</a>
+    </li>
+    <li>
+      <a href="/issues/">IssueTracker</a>
+    </li>
+    <li>
+      <form name="ProjectIssuesForm" method="get" action="/issues/show_bug.cgi" style="margin-left:2em">
+        <input type="submit" value="Go to" /> # <input name="id" size="3" />
+      </form>
+    </li>
+  </ul>
+
+<script>
+var info = {
+  title: "JXME"
+};
+</script>
+
+<script src="http://jxta.dev.java.net/zone-bindings.js"></script>
+<script src="http://jxta.dev.java.net/theme.js"></script>
+
+<!-- create the location bar short-cut -->
+<script>
+addLoadEvent(function() {
+	var html = [];
+
+	function addIcon(href,image,text) {
+		html.push("<div align=center style='float:right; margin:0.5em;'><a href='");
+		html.push(href);
+		html.push("'><img border=0 alt='");
+		html.push(text);
+		html.push("' src='/image/");
+		html.push(image);
+		html.push("'/></a><br><a href='");
+		html.push(href);
+		html.push("'>");
+		html.push(text);
+		html.push("</a></div>");
+	}
+	
+	// added in the reverse order
+	addIcon("http://forums.java.net/jive/category.jspa?categoryID=34","srcbrowse.gif","Get Involved");
+	addIcon("http://forums.java.net/jive/category.jspa?categoryID=34","communities.gif","Get Started");
+	addIcon("http://download.java.net/jxta","download.gif","Download");
+	
+	var div = document.createElement("div");
+	div.innerHTML = html.join('');
+	div.style.float = "right";
+	div.style.marginTop = "1em";
+	
+	var logobox = document.getElementById("logo-box");
+	logobox.parentNode.insertBefore(div,logobox);
+});
+</script>
+
+
+<!-- the following code is required by statcounter for project GlassFish. REMOVE ONLY if this file is included in a project other than GlassFish -->
+<!-- Start of StatCounter Code -->
+<!-- JXTA is not using it
+<script type="text/javascript" language="javascript">
+var sc_project=1289830;
+var sc_invisible=1;
+var sc_partition=11;
+var sc_security="ae5ef92d";
+var sc_https=1;
+</script>
+
+<script type="text/javascript" language="javascript" src="https://secure.statcounter.com/counter/counter.js"></script>
+<noscript><a href="http://www.statcounter.com/" target="_blank"><img
+src="https://c12.statcounter.com/counter.php?sc_project=1289830&amp;amp;java=0&amp;amp;security=ae5ef92d&amp;amp;invisible=1"
+alt="stats count" border="0"></a> </noscript>
+-->
+<!-- End of StatCounter Code -->
