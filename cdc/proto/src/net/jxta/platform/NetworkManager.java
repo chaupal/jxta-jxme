@@ -290,14 +290,14 @@ public class NetworkManager implements RendezvousListener {
             default:
                 config = NetworkConfigurator.newAdHocConfiguration(instanceHome);
         }
-            config.setDescription("Created by NetworkManager");
-            config.setPeerID(peerID);
-            config.setInfrastructureID(infrastructureID);
-            config.setName(instanceName);
-            if (useDefaultSeeds) {
-                config.addRdvSeedingURI(publicSeedingRdvURI);
-                config.addRelaySeedingURI(publicSeedingRelayURI);
-            }
+        config.setDescription("Created by NetworkManager");
+        config.setPeerID(peerID);
+        config.setInfrastructureID(infrastructureID);
+        config.setName(instanceName);
+        if (useDefaultSeeds) {
+            config.addRdvSeedingURI(publicSeedingRdvURI);
+            config.addRelaySeedingURI(publicSeedingRelayURI);
+        }
     }
 
     /**
@@ -342,7 +342,7 @@ public class NetworkManager implements RendezvousListener {
         }
 
         stopped = true;
-        synchronized(networkConnectLock) {
+        synchronized (networkConnectLock) {
             connected = false;
             networkConnectLock.notifyAll();
         }

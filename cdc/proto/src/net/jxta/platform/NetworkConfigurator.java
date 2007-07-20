@@ -359,7 +359,7 @@ public class NetworkConfigurator {
 
     /**
      * Creates NetworkConfigurator instance with default Edge configuration
-     * 
+     *
      * @param storeHome the URI to persistent store
      * @return NetworkConfigurator instance with default AD-HOC configuration
      */
@@ -430,10 +430,10 @@ public class NetworkConfigurator {
      * @see #setHome
      */
     public File getHome() {
-        if( "file".equalsIgnoreCase(storeHome.getScheme())) {
+        if ("file".equalsIgnoreCase(storeHome.getScheme())) {
             return new File(storeHome);
         } else {
-            throw new UnsupportedOperationException("Home location is not a file:// URI : " + storeHome );
+            throw new UnsupportedOperationException("Home location is not a file:// URI : " + storeHome);
         }
     }
 
@@ -478,6 +478,7 @@ public class NetworkConfigurator {
 
         storeHome = newHome;
     }
+
     /**
      * Sets PlaformConfig Peer Description element
      *
@@ -1037,7 +1038,7 @@ public class NetworkConfigurator {
 
         try {
             return null != read(platformConfig);
-        } catch( IOException failed ) {
+        } catch (IOException failed) {
             return false;
         }
     }
@@ -1288,8 +1289,8 @@ public class NetworkConfigurator {
      * <p/>
      * Home may be overridden by a call to setHome()
      *
-     * @see #load
      * @throws IOException If there is a failure saving the PlatformConfig.
+     * @see #load
      */
     public void save() throws IOException {
         httpEnabled = (httpConfig.isClientEnabled() || httpConfig.isServerEnabled());
@@ -1466,9 +1467,9 @@ public class NetworkConfigurator {
     }
 
     /**
-     *  @param location The location of the platform config.
-     *  @return The platformConfig
-     *  @throws IOException Thrown for failures reading the PlatformConfig.
+     * @param location The location of the platform config.
+     * @return The platformConfig
+     * @throws IOException Thrown for failures reading the PlatformConfig.
      */
     private PlatformConfig read(URI location) throws IOException {
         URL url;
