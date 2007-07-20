@@ -54,6 +54,26 @@
  */
 package net.jxta.platform;
 
+import net.jxta.document.Advertisement;
+import net.jxta.document.AdvertisementFactory;
+import net.jxta.document.MimeMediaType;
+import net.jxta.document.StructuredDocument;
+import net.jxta.document.StructuredDocumentFactory;
+import net.jxta.document.StructuredDocumentUtils;
+import net.jxta.document.XMLDocument;
+import net.jxta.id.ID;
+import net.jxta.id.IDFactory;
+import net.jxta.impl.protocol.PlatformConfig;
+import net.jxta.impl.protocol.RdvConfigAdv;
+import net.jxta.impl.protocol.RdvConfigAdv.RendezVousConfiguration;
+import net.jxta.impl.protocol.RelayConfigAdv;
+import net.jxta.impl.protocol.TCPAdv;
+import net.jxta.peer.PeerID;
+import net.jxta.peergroup.PeerGroup;
+import net.jxta.peergroup.PeerGroupID;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -64,28 +84,6 @@ import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import net.jxta.document.Advertisement;
-import net.jxta.document.AdvertisementFactory;
-import net.jxta.document.MimeMediaType;
-import net.jxta.document.StructuredDocument;
-import net.jxta.document.StructuredDocumentFactory;
-import net.jxta.document.StructuredDocumentUtils;
-import net.jxta.document.XMLDocument;
-import net.jxta.exception.ConfiguratorException;
-import net.jxta.id.ID;
-import net.jxta.id.IDFactory;
-import net.jxta.impl.protocol.PlatformConfig;
-import net.jxta.impl.protocol.RdvConfigAdv;
-import net.jxta.impl.protocol.RdvConfigAdv.RendezVousConfiguration;
-import net.jxta.impl.protocol.RelayConfigAdv;
-import net.jxta.impl.protocol.TCPAdv;
-import net.jxta.peer.PeerID;
-import net.jxta.peergroup.PeerGroup;
-import net.jxta.peergroup.PeerGroupFactory;
-import net.jxta.peergroup.PeerGroupID;
-import net.jxta.protocol.ConfigParams;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 
 /**
  *  By design this configuration factory provides a preset edge configuration
@@ -273,7 +271,7 @@ public final class ConfigurationFactory  {
         Iterator eachSeed = factory.seedRelay.iterator();
         while (eachSeed.hasNext()) {
             //FIXME RelayConfigAdv should support addSeedRelay(uri)
-            relayConfig.addSeedRelay(((URI) eachSeed.next()).toString());
+            relayConfig.addSeedRelay(eachSeed.next().toString());
         }
         relayConfig.setUseOnlySeeds(factory.useOnlyRelaySeeds);
         relayConfig.setClientEnabled(true);
@@ -382,9 +380,7 @@ public final class ConfigurationFactory  {
         OutputStreamWriter os = new OutputStreamWriter(out, "UTF-8");
         aDoc.sendToWriter(os);
         os.flush();
-        if (null != out) {
-            out.close();
-        }
+        out.close();
     }
 
     /**
@@ -569,7 +565,7 @@ public final class ConfigurationFactory  {
     /**
      *  Sets Infrastructure PeerGroup ID
      *
-     *@param  id    the Infrastructure PeerGroup ID
+     *@param  peerGroupID    the Infrastructure PeerGroup ID
      */
     public static void setInfrastructureID(PeerGroupID peerGroupID) {
         if (peerGroupID == null || peerGroupID.equals(ID.nullID)) {
@@ -580,7 +576,7 @@ public final class ConfigurationFactory  {
     /**
      *  Sets Infrastructure PeerGroup ID
      *
-     *@param  id the Infrastructure PeerGroup ID
+     *@return the Infrastructure PeerGroup ID
      */
     public static PeerGroupID getInfrastructureID() {
         return netPGID;
