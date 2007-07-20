@@ -282,14 +282,13 @@ public class NetworkManager implements RendezvousListener {
     private void configure(int mode) throws IOException {
         switch (mode) {
             case ADHOC:
-                config = NetworkConfigurator.newAdHocConfiguration();
+                config = NetworkConfigurator.newAdHocConfiguration(instanceHome);
                 break;
-
             case EDGE:
-                config = NetworkConfigurator.newEdgeConfiguration();
+                config = NetworkConfigurator.newEdgeConfiguration(instanceHome);
                 break;
             default:
-                config = NetworkConfigurator.newAdHocConfiguration();
+                config = NetworkConfigurator.newAdHocConfiguration(instanceHome);
         }
             config.setDescription("Created by NetworkManager");
             config.setPeerID(peerID);
