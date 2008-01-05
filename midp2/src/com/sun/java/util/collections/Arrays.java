@@ -783,16 +783,12 @@ public class Arrays {
 
     public static void sort(Object aobj[]) {
         Object aobj1[] = aobj;
-// FDM
-//        Object aobj1[] = (Object[])aobj.clone();
         mergeSort(aobj1, aobj, 0, aobj.length);
     }
 
     public static void sort(Object aobj[], int i, int j) {
         rangeCheck(aobj.length, i, j);
         Object aobj1[] = aobj;
-// FDM
-//        Object aobj1[] = (Object[])aobj.clone();
         mergeSort(aobj1, aobj, i, j);
     }
 
@@ -833,16 +829,12 @@ public class Arrays {
 
     public static void sort(Object aobj[], Comparator comparator) {
         Object aobj1[] = aobj;
-// FDM
-//        Object aobj1[] = (Object[])aobj.clone();
         mergeSort(aobj1, aobj, 0, aobj.length, comparator);
     }
 
     public static void sort(Object aobj[], int i, int j, Comparator comparator) {
         rangeCheck(aobj.length, i, j);
         Object aobj1[] = aobj;
-// FDM
-//        Object aobj1[] = (Object[])aobj.clone();
         mergeSort(aobj1, aobj, i, j, comparator);
     }
 

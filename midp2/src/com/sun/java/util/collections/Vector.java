@@ -275,8 +275,6 @@ public class Vector extends AbstractList implements List {
     toArray(Object aobj[]) {
         if (aobj.length < elementCount)
             aobj = new Object[elementCount];
-// FDM
-//            aobj = (Object[])Array.newInstance(((Object) (aobj)).getClass().getComponentType(), elementCount);
         System.arraycopy(((Object) (elementData)), 0, ((Object) (aobj)), 0, elementCount);
         if (aobj.length > elementCount)
             aobj[elementCount] = null;

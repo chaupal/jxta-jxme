@@ -126,11 +126,6 @@ public class TreeSet extends AbstractSet implements SortedSet {
         return m.lastKey();
     }
 
-// FDM
-//    public Object clone() {
-//        return new TreeSet(this);
-//    }
-
     private transient SortedMap m;
     private transient Set keySet;
     private static final Object PRESENT = new Object();

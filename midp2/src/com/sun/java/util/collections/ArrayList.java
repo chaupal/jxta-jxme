@@ -126,8 +126,6 @@ public class ArrayList extends AbstractList implements List {
     public Object[] toArray(Object aobj[]) {
         if (aobj.length < size)
             aobj = new Object[size];
-// FDM
-//            aobj = (Object[])Array.newInstance(((Object) (aobj)).getClass().getComponentType(), size);
         System.arraycopy(((Object) (elementData)), 0, ((Object) (aobj)), 0, size);
         if (aobj.length > size)
             aobj[size] = null;

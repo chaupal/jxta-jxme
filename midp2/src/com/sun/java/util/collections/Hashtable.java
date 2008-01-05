@@ -149,12 +149,6 @@ public class Hashtable implements Map {
     private static class Entry
             implements Map.Entry {
 
-// FDM
-//        protected Object clone()
-//        {
-//            return new Entry(hash, key, value, next != null ? (Entry)next.clone() : null);
-//        }
-
         public Object getKey() {
             return key;
         }

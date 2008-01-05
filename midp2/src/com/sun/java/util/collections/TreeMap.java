@@ -538,11 +538,6 @@ public class TreeMap extends AbstractMap
         root = null;
     }
 
-// FDM
-//    public Object clone() {
-//        return new TreeMap(this);
-//    }
-
     public Set keySet() {
         if (keySet == null)
             keySet = new AbstractSet() {

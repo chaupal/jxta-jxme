@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="dist" name="jxes">
+
+  <property environment="env"/>
+
+  <property name="cldc_lib"                 value="${env.MIDP_HOME}/lib/cldcapi11.jar"/>
+  <property name="midp_lib"                 value="${env.MIDP_HOME}/lib/midpapi20.jar"/>
+  <property name="preverifier"              value="${env.MIDP_HOME}/bin/preverify1.1"/>
+  <!-- property name="log" value="lib/log4jME-1_3alpha_7.jar"/ -->
+
+  <property name="src"                      value="src"/>
+  <property name="src_log4j_stub"           value="log4j"/>
+  <property name="demo"                     value="demo"/>
+  <property name="chat"                     value="chat"/>
+  <property name="jxtacast"                     value="jxtacast"/>
+
+  <property name="test"                     value="test"/>
+  <property name="test_classes"             value="test/classes"/>
+
+  <property name="classes_cldc_unverified"  value="classes_cldc_unverified"/>
+  <property name="classes_cldc_verified"    value="classes_cldc"/>
+
+  <property name="dist"                     value="dist"/>
+  <property name="javadoc"                  value="doc"/>
+  <property name="res"                      value="res"/>
+  <property name="tutorial"                 value="tutorial"/>
+
+  <property name="debug"                    value="off"/>
+
+  <!-- build the ant tasks that we need and install them into the correct directory -->
+  <target name="prepare" depends="clean" >
+    <tstamp/>
+    <mkdir dir="${classes_cldc_unverified}"/>
+    <mkdir dir="${classes_cldc_verified}"/>
+    <mkdir dir="${dist}"/>
+  </target>
+
+
+  <target name="test_prepare">
+    <mkdir dir="${test_classes}"/>
+  </target>
+
+
+  <target name="compile_cldc" depends="prepare" >
+    <javac destdir="${classes_cldc_unverified}"
+	    srcdir="${src_log4j_stub}:${src}:${demo}:${jxtacast}:${chat}"
+	   bootclasspath="${cldc_lib}"
+	   classpath="${midp_lib}"
+	   debug="${debug}"
+           includeAntRuntime="false"
+	   source="1.1"
+	   target="1.1">
+    </javac>
+    <echo message="Preverifying classes..."/>
+    <exec dir="."
+          executable="${preverifier}"
+          failonerror="true">
+	  <arg line = "-classpath ${cldc_lib}:${midp_lib}"/>
+      <arg line = "-d ${classes_cldc_verified}"/>
+      <arg line = "${classes_cldc_unverified}"/>
+    </exec>
+  </target>
+
+
+  <target name="dist_cldc" depends="compile_cldc" >
+    <jar jarfile="${dist}/jxta-cldc.jar">
+      <fileset dir="${classes_cldc_verified}"/>
+    </jar>
+  </target>
+
+
+  <target name="jar" depends="compile_cldc" >
+    <jar jarfile="${dist}/jxta-cldc.jar">
+      <fileset dir="${classes_cldc_verified}"/>
+    </jar>
+  </target>
+
+  <target name="run" depends="jar">
+	  <exec executable="${env.MIDP_HOME}/bin/emulator">
+		  <arg line="-cp ${dist}/jxta-cldc.jar -Xdescriptor:Chat.jad"/>
+	  </exec>
+  </target>
+  <target name="jad_dist" depends="">
+  <mkdir dir="build/bin"/>
+   <jar basedir="build/preverified"
+     jarfile="build/bin/Chat.jar"
+     manifest="bin/MANIFEST.MF">
+     <fileset dir="res"/>
+   </jar>
+   <copy file="bin/MyProj.jad"
+tofile="build/bin/MyProj.jad"/>
+</target>
+
+  <target name="runp" depends="jar">
+	  <exec executable="java">
+		  <arg line="-cp ${dist}/jxta-cldc.jar -jar ${env.MPP_HOME}/player.jar Chat.jad"/>
+	  </exec>
+  </target>
+
+
+  <target name="dist" depends="dist_cldc" />
+
+
+  <target name="javadoc">
+    <mkdir dir="${javadoc}"/>
+    <javadoc sourcepath="${src};${tutorial}/src"
+             classpath="${midp_lib}"
+             access="public"
+	     windowtitle="JXTA for J2ME"
+	     doctitle="JXTA for J2ME"
+	     header="JXTA for J2ME"
+             destdir="${javadoc}">
+      <group title="API" packages="net.jxta.*"/>
+      <group title="Examples" packages="tutorial.*"/>
+      <package name="net.jxta.j2me"/>
+      <package name="tutorial"/>
+    </javadoc>
+  </target>
+
+
+  <target name="compile_test" depends="compile_cldc, test_prepare" >
+    <javac destdir="${test_classes}"
+           classpath="${classes_cldc_unverified}"
+           srcdir="${test}"
+	   debug="${debug}"
+           includeAntRuntime="false"
+	   source="1.1"
+	   target="1.1"/>
+  </target>
+
+
+  <target name="clean">
+    <delete dir="${classes_cldc_unverified}"/>
+    <delete dir="${classes_cldc_verified}"/>
+    <delete dir="${dist}"/>
+    <delete dir="${javadoc}"/>
+    <delete dir="${test_classes}"/>
+  </target>
+</project>
