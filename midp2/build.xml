@@ -6,12 +6,9 @@
   <property name="cldc_lib"                 value="${env.MIDP_HOME}/lib/cldcapi11.jar"/>
   <property name="midp_lib"                 value="${env.MIDP_HOME}/lib/midpapi20.jar"/>
   <property name="preverifier"              value="${env.MIDP_HOME}/bin/preverify1.1"/>
-  <!-- property name="log" value="lib/log4jME-1_3alpha_7.jar"/ -->
 
   <property name="src"                      value="src"/>
-  <property name="src_log4j_stub"           value="log4j"/>
   <property name="demo"                     value="demo"/>
-  <property name="chat"                     value="chat"/>
   <property name="jxtacast"                     value="jxtacast"/>
 
   <property name="test"                     value="test"/>
@@ -43,7 +40,7 @@
 
   <target name="compile_cldc" depends="prepare" >
     <javac destdir="${classes_cldc_unverified}"
-	    srcdir="${src_log4j_stub}:${src}:${demo}:${jxtacast}:${chat}"
+	    srcdir="${src}:${demo}:${jxtacast}"
 	   bootclasspath="${cldc_lib}"
 	   classpath="${midp_lib}"
 	   debug="${debug}"
