@@ -1,0 +1,63 @@
+<project name="MediaShare" default="dist" basedir="..">
+  <property name="midp" value="/opt/WTK2.0"/>
+  <property name="midp_lib" value="${midp}/lib/midpapi.zip"/>
+
+  <property name="jax" value="/lang/jax61"/>
+
+  <target name="init">
+    <tstamp/>
+  </target>
+  
+  <target name="compile" depends="init">
+    <mkdir dir="build/classes"/>
+    <javac destdir="build/classes" srcdir="src"
+        bootclasspath="${midp_lib}" target="1.1" source="1.2"/>
+  </target>
+  
+  <target name="obfuscate" depends="compile">
+    <mkdir dir="build/jax"/>
+    
+    <java fork="yes" classname="com.ibm.jax.Batch"
+        classpath="${jax};${midp_lib}">
+      <sysproperty key="HOME" value=".."/>
+      <sysproperty key="MIDP_HOME" value="${midp}"/>
+      <arg line="build/myprog.jax"/>
+    </java>
+    
+    <mkdir dir="build/obfuscated"/>
+    <unjar src="build/jax/myprog_jax.zip"
+        dest="build/obfuscated"/>
+   </target>
+
+<!-- Change the depend here to "compile" if you don't 
+wish to use an obfuscator (obfuscate) -->
+<target name="preverify" depends="compile">
+      <mkdir dir="build/preverified"/>
+      <exec executable="${midp}/bin/preverify">
+        <arg line="-classpath ${midp_lib}"/>
+        <arg line="-d build/preverified"/>
+        <arg line="build/classes"/>
+      </exec>
+</target>
+
+<target name="dist" depends="preverify">
+    <mkdir dir="build/bin"/>
+    <jar basedir="build/preverified"
+        jarfile="build/bin/MediaShare.jar"
+        manifest="bin/MANIFEST.MF">
+      <fileset dir="res"/>
+    </jar>
+    <copy file="bin/MediaShare.jad"
+        tofile="build/bin/MediaShare.jad"/>
+    <exec executable="/home/emike/bin/fixjad">
+      <arg line="update_size bin/MediaShare.jad build/bin/MediaShare.jad"/>
+    </exec>
+</target>
+
+<target name="run" depends="dist">
+    <exec executable="${midp}/bin/emulator">
+      <arg line="-Xdescriptor:build/bin/MediaShare.jad"/>
+    </exec>
+</target>
+
+</project>
