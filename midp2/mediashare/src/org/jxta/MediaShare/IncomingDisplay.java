@@ -35,7 +35,5 @@ public class IncomingDisplay extends PictureDisplay {
         super.paint(g);
 
         drawStringShadowRight(g, 2, 0, sender);
-
-        return;
     }
 }

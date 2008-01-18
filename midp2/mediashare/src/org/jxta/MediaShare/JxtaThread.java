@@ -49,27 +49,13 @@ public class JxtaThread extends Jxta implements Runnable {
                             AlertType.ERROR,
                             Alert.FOREVER);
                 }
-                /*
-                if (sendPending)
-		{
-                    try
-		    {
-                        send();
-                    }
-		    finally
-		    {
-                        sendPending = false;
-                    }
-                }
-                 */
             }
 
             try {
                 // keep polling until we drain all queued messages
                 while (poll()) {
                 }
-            }
-            catch (Throwable t) {
+            } catch (Throwable t) {
                 t.printStackTrace();
                 gui.showMessage("Poll",
                         "Error processing message: " + t.getMessage(),
@@ -80,8 +66,7 @@ public class JxtaThread extends Jxta implements Runnable {
             try {
                 // poll interval is specified in seconds
                 Thread.currentThread().sleep(pollInterval * 1000);
-            }
-            catch (InterruptedException ignore) {
+            } catch (InterruptedException ignore) {
             }
         }
     }
@@ -93,8 +78,7 @@ public class JxtaThread extends Jxta implements Runnable {
         private int tick = 0;
         private JxtaGui jgui;
 
-        StatusUpdate(JxtaGui in_jgui) //StringItem elapsed, Gauge status)
-        {
+        StatusUpdate(JxtaGui in_jgui) {
             jgui = in_jgui;
         }
 

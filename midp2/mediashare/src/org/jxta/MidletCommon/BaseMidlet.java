@@ -64,16 +64,12 @@ public class BaseMidlet extends MIDlet implements CommandListener {
     public void startApp()
             throws MIDletStateChangeException {
         init();
-        return;
     }
 
     public void pauseApp() {
-        return;
     }
 
-    public void destroyApp(boolean unconditional)
-            throws MIDletStateChangeException {
-        return;
+    public void destroyApp(boolean unconditional) throws MIDletStateChangeException {
     }
 
     //

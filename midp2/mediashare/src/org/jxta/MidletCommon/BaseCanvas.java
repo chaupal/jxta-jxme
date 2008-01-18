@@ -150,7 +150,6 @@ public class BaseCanvas extends Canvas {
             width = g.getFont().stringWidth(str);
             drawStringShadow(g, getWidth() - width - x, y, str);
         }
-        return;
     }
 
     public void drawStringsRight(Graphics g, int x, int y, int w,
@@ -161,11 +160,9 @@ public class BaseCanvas extends Canvas {
             g.setColor(fg);
             g.drawString(str1, x + w - width, y, Graphics.TOP | Graphics.LEFT);
         }
-        return;
     }
 
     protected void drawForeground(Graphics g) {
-        return;
     }
 
     protected void drawTitle(Graphics g) {
@@ -174,7 +171,6 @@ public class BaseCanvas extends Canvas {
             g.setFont(titleFont);
             g.drawString(myTitle, dataOffset, 0, Graphics.TOP | Graphics.LEFT);
         }
-        return;
     }
 
     //
@@ -184,17 +180,14 @@ public class BaseCanvas extends Canvas {
         drawBackground(g);
         drawForeground(g);
         drawTitle(g);
-        return;
     }
 
     protected void drawBackground(Graphics g) {
         clear(g, 0xffffff);
-        return;
     }
 
     protected void clear(Graphics g, int bgcolor) {
         clear(g, bgcolor, 0, 0, getWidth(), getHeight());
-        return;
     }
 
     protected void clear(Graphics g, int color, int x1, int y1, int w, int h) {
@@ -219,7 +212,6 @@ public class BaseCanvas extends Canvas {
         g.setFont(Font.getDefaultFont());
         g.setColor(0xff0000);
         g.drawString("" + count, count * 8, half, Graphics.TOP | Graphics.LEFT);
-        return;
     }
 
     //

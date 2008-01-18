@@ -111,7 +111,6 @@ public class MediaShare extends BaseMidlet implements JxtaGui {
             welcomeScreen.addCommand(startCommand);
 
         setCurrent(welcomeScreen);
-        return;
     }
 
     //
@@ -158,7 +157,6 @@ public class MediaShare extends BaseMidlet implements JxtaGui {
                 ex.printStackTrace();
             }
         }
-        return;
     }
 
     //
@@ -177,8 +175,6 @@ public class MediaShare extends BaseMidlet implements JxtaGui {
             configForm.setData(relayHost, relayPort, identity);
             display.setCurrent(configForm);
         }
-
-        return;
     }
 
     private void commandPictureList(Command command, Displayable displayable) {
@@ -271,16 +267,6 @@ public class MediaShare extends BaseMidlet implements JxtaGui {
 
     private void readConfig() {
         String tmp;
-
-        /*
-   relayHost = getAppPropertyDefault("RelayHost", "www.jxta.org");
-
-   tmp = getAppPropertyDefault("RelayPort", "9700");
-   relayPort = Integer.parseInt(tmp);
-
-   identity = getAppPropertyDefault("Identity", "");
-        */
-
         tmp = getAppPropertyDefault("PollInterval", DEFAULT_POLL_INTERVAL);
         pollInterval = Integer.parseInt(tmp);
     }
@@ -296,14 +282,6 @@ public class MediaShare extends BaseMidlet implements JxtaGui {
         //
         // First pop up an alert.  If the user accepts it, then display the picture.
         //
-        /*
-        incomingAlert.setInfo(caption, sender);
-        display.setCurrent(incomingAlert);
-        
-        incomingData = data;
-        incomingCaption = caption;
-        incomingSender = caption;
-         */
         incomingDisplay.createImage(data, caption, sender);
         setCurrent(incomingDisplay);
     }
@@ -318,8 +296,6 @@ public class MediaShare extends BaseMidlet implements JxtaGui {
             String imgName;
 
             Vector vec = mediaFiles.getFileInfo();    // FILES
-            //Vector vec = new Vector();		// NO FILES
-
             imgName = "/buspic.jpg";
             img = Image.createImage(imgName);
             vec.addElement(new ImageContainer(img, imgName));
@@ -422,7 +398,6 @@ public class MediaShare extends BaseMidlet implements JxtaGui {
                 showExceptionAlert("Problem deleting record", e);
             }
         }
-        return;
     }
 
     private int saveRecord(String str) {
@@ -442,8 +417,7 @@ public class MediaShare extends BaseMidlet implements JxtaGui {
         } else {
             try {
                 recordStore.setRecord(recordId, recordData, 0, recordLen);
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 showExceptionAlert("Problem setting record [" +
                         recordId + "][" + str + "]", e);
             }

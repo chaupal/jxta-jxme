@@ -59,7 +59,6 @@ public class BaseBgCanvas extends BaseCanvas {
         loadImages();
         Yoff = 0;
         Xoff = 0;
-        return;
     }
 
     //
@@ -71,8 +70,6 @@ public class BaseBgCanvas extends BaseCanvas {
 
         if (foreground == null)
             foreground = loadImage(fgImageFile);
-
-        return;
     }
 
     //
@@ -92,7 +89,6 @@ public class BaseBgCanvas extends BaseCanvas {
                               int h, int fg, String str1) {
         drawForeground(g, x, y, w, h);
         drawStrings(g, x + 1, y + 1, w, h, fg, 0, str1, null);
-        return;
     }
 
     protected void drawTiledImage(Graphics g, Image img) {
@@ -107,7 +103,5 @@ public class BaseBgCanvas extends BaseCanvas {
         for (idxX = -Xoff; idxX < getWidth(); idxX += img.getWidth())
             for (idxY = 0; idxY < getHeight(); idxY += img.getHeight())
                 g.drawImage(img, idxX, idxY, Graphics.TOP | Graphics.LEFT);
-
-        return;
     }
 }

@@ -401,20 +401,6 @@ public class Jxta {
             sendPending = true;
             return false;
         }
-
-        /*
-       int pic = 0;
-       String msg = gui.getMessage();
-       try
-       {
-           pic = Integer.parseInt(msg);
-       }
-       catch (NumberFormatException nfe)
-       {
-         pic = 0;
-       }
-        */
-
         if (sendFileName == null) {
             // Just message
             Element[] elm = new Element[3];

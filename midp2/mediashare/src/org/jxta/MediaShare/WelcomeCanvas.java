@@ -47,12 +47,9 @@ public class WelcomeCanvas extends BaseBgCanvas {
 
         if (motLogo == null)
             motLogo = loadImage(motLogoStr);
-
-        return;
     }
 
     protected void drawTitle(Graphics g) {
-        return;
     }
 
     protected void paint(Graphics g) {
@@ -142,7 +139,6 @@ public class WelcomeCanvas extends BaseBgCanvas {
                         g, r1, g1, b1, r2, g2, b2);
             }
         }
-        return;
     }
 
     private void gline(int x1, int y1, int x2, int y2, int inc, int total, Graphics g,
@@ -154,6 +150,5 @@ public class WelcomeCanvas extends BaseBgCanvas {
 
         g.setColor(color);
         g.drawLine(x1, y1, x2, y2);
-        return;
     }
 }

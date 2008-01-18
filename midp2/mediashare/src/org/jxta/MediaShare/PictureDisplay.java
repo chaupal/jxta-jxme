@@ -36,12 +36,10 @@ public class PictureDisplay extends BaseBgCanvas {
     }
 
     protected void drawTitle(Graphics g) {
-        return;
     }
 
     public void setImage(Image image) {
         picture = image;
-        return;
     }
 
     public void setCaption(String cap) {
@@ -106,7 +104,5 @@ public class PictureDisplay extends BaseBgCanvas {
             drawStringShadow(g, 2, 0, fileName);
             drawStringShadow(g, 2, getHeight() - 15, caption);
         }
-
-        return;
     }
 }
