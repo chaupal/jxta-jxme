@@ -1,4 +1,5 @@
 /*
+ *
  *  Copyright (c) 2001-2008 Sun Microsystems, Inc.  All rights
  *  reserved.
  *
@@ -52,6 +53,8 @@
  *  This license is based on the BSD license adopted by the Apache Foundation.
  *
  *  $Id: $
+ *
+ *
  */
 package net.jxta.util.java.net;
 
