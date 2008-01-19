@@ -81,17 +81,32 @@
 
 package net.jxta.jxtacast;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
 
-import net.jxta.discovery.*;
-import net.jxta.document.*;
-import net.jxta.endpoint.*;
-import net.jxta.id.*;
-import net.jxta.peergroup.*;
-import net.jxta.pipe.*;
-import net.jxta.protocol.*;
-import net.jxta.rendezvous.*;
+import net.jxta.discovery.DiscoveryService;
+import net.jxta.document.AdvertisementFactory;
+import net.jxta.endpoint.ByteArrayMessageElement;
+import net.jxta.endpoint.Message;
+import net.jxta.endpoint.MessageElement;
+import net.jxta.endpoint.StringMessageElement;
+import net.jxta.id.IDFactory;
+import net.jxta.peergroup.PeerGroup;
+import net.jxta.pipe.InputPipe;
+import net.jxta.pipe.OutputPipe;
+import net.jxta.pipe.PipeID;
+import net.jxta.pipe.PipeMsgEvent;
+import net.jxta.pipe.PipeMsgListener;
+import net.jxta.pipe.PipeService;
+import net.jxta.protocol.PeerAdvertisement;
+import net.jxta.protocol.PipeAdvertisement;
 
 
 /*
@@ -170,8 +185,7 @@ public class JxtaCast implements PipeMsgListener, Runnable {
     public final static String DELIM      = "]--,',--[";     // Delimiter for some pipe name sections.
 
     public static boolean logEnabled;        // Log debug messages if true.
-    //BT  increase blocksize
-    public int outBlockSize        =  12288*4; // Size of the data block to send with each message, in bytes.
+    public int outBlockSize        =  12288; // Size of the data block to send with each message, in bytes.
     public int outWranglerLifetime = 600000; // 10 mins: time to store inactive output wranglers, in millis.
     public int inWranglerLifetime  = 300000; //  5 mins: time to store inactive input wranglers, in millis.
     public int timeTilReq          =  60000; // 60 secs: max time that we'll wait before requesting missing file blocks.
@@ -186,7 +200,7 @@ public class JxtaCast implements PipeMsgListener, Runnable {
     // the incoming messages for one file.  The wrangler's composeKey() func will
     // supply us with a unique hash key for each file transfer.
     //
-    protected Hashtable wranglers = new Hashtable(40);
+    protected final Hashtable wranglers = new Hashtable(40);
 
     // When sending a file, requests are temporarily queued here.  Another thread
     // reads the queue, loads the file, and starts the transmission out through
@@ -204,14 +218,15 @@ public class JxtaCast implements PipeMsgListener, Runnable {
     protected OutputPipe  outputPipe;    // Public propagation pipe, paired with the above.
     protected InputPipe   privInputPipe; // Private unicast pipe, the "back channel".
     protected Vector      jcListeners;   // Registered JxtaCastEventListener objects.
-    public Hashtable fileSystem = new Hashtable(10);
-    
+
+
     /** Constructor
      *
      *  @param group - peergroup that we've joined.
      *  @param castName - name to use in the pipe advertisement ID , such as an
      *                    application name.  This permits the creation of
      *                    multiple JxtaCast channels within a single group.
+     * @param myPeer this peer's adv
      */
     public JxtaCast(PeerAdvertisement myPeer, PeerGroup group, String castName) {
 
@@ -234,16 +249,17 @@ public class JxtaCast implements PipeMsgListener, Runnable {
     }
 
 
-    /** Return the currently joined peer group. */
+    /** Return the currently joined peer group.
+     * @return the peer group
+     * */
     public PeerGroup getPeerGroup() {
         return group;
     }
 
-    public Hashtable getFileSystem() {
-        return fileSystem;
-    }
+
     /** Change to a new peer group.
      *  @return true if we successfully created the pipes in the new group.
+     * @param group the peer group
      */
     public boolean setPeerGroup(PeerGroup group) {
 
@@ -272,6 +288,7 @@ public class JxtaCast implements PipeMsgListener, Runnable {
     /** Log a debug message to the console.  Should maybe use Log4J?
      *  Have to figure out whether we can use Log4J to show our application
      *  debug messages, but suppress all the JXTA platform messages.
+     * @param msg the message to log
      */
     public static void logMsg(String msg) {
         if (logEnabled)
@@ -287,7 +304,7 @@ public class JxtaCast implements PipeMsgListener, Runnable {
      *  @return true if successful.
      */
     protected boolean createPipes(String castName) {
-    
+
         // Close any existing pipes.
         if (inputPipe != null)
             inputPipe.close();
@@ -316,19 +333,18 @@ public class JxtaCast implements PipeMsgListener, Runnable {
             (byte) 0xAA, (byte) 0xAA, (byte) 0xAA, (byte) 0xAA,
             (byte) 0xBB, (byte) 0xBB, (byte) 0xBB, (byte) 0xBB,
             (byte) 0xBB, (byte) 0xBB, (byte) 0xBB, (byte) 0xBB,
-            (byte) 0xAA, (byte) 0xAA, (byte) 0xAA, (byte) 0xAB };
+            (byte) 0xAA, (byte) 0xAA, (byte) 0xAA, (byte) 0xAA };
 
         String idStr = castName + "-[FileCast Pipe ID]-" + new String(jxtaCastID);
-        PipeID id = (PipeID)IDFactory.newPipeID(group.getPeerGroupID(), idStr.getBytes());
+        PipeID id = IDFactory.newPipeID(group.getPeerGroupID(), idStr.getBytes());
         pipeAdvt.setPipeID(id);
         pipeAdvt.setName("JxtaTalkSenderName." + castName);
         pipeAdvt.setType(PipeService.PropagateType);
-         
-        
+
         try {
             disco.publish(pipeAdvt);
             inputPipe = pipeServ.createInputPipe(pipeAdvt, this);
-            outputPipe = pipeServ.createOutputPipe(pipeAdvt, 5000);
+            outputPipe = pipeServ.createOutputPipe(pipeAdvt, 2000);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -350,7 +366,7 @@ public class JxtaCast implements PipeMsgListener, Runnable {
         pipeAdvt = (PipeAdvertisement)AdvertisementFactory.newAdvertisement(
             PipeAdvertisement.getAdvertisementType());
 
-        id = (PipeID)IDFactory.newPipeID(group.getPeerGroupID());
+        id = IDFactory.newPipeID(group.getPeerGroupID());
         pipeAdvt.setPipeID(id);
         pipeAdvt.setName(getBackChannelPipeName());
         pipeAdvt.setType(PipeService.UnicastType);
@@ -370,6 +386,7 @@ public class JxtaCast implements PipeMsgListener, Runnable {
     /** Return the name used in advertisement for our "back channel" input pipe.
      *  The string contains a known prefix that can be used for discovery,
      *  plus our peer name and ID.
+     * @return the back channel pipe name
      */
     public String getBackChannelPipeName() {
 
@@ -377,17 +394,16 @@ public class JxtaCast implements PipeMsgListener, Runnable {
         // We need to parse this string later, so we need something that's
         // unlikely to appear in a peer name.  (A simple period is too risky.)
         //
-        String name = getBackChannelPipePrefix() + DELIM +
+        return getBackChannelPipePrefix() + DELIM +
                       myPeer.getName()           + DELIM +
                       myPeer.getPeerID().toString();
-
-        return name;
     }
 
 
     /** Return the prefix used in the name of our "back channel" input pipe.
      *  This prefix can be used with advertisement discovery to narrow the
      *  discovery results to peers using JxtaCast with your application.
+     * @return    the back channel pipe prefix
      */
     public String getBackChannelPipePrefix() {
 
@@ -396,6 +412,8 @@ public class JxtaCast implements PipeMsgListener, Runnable {
 
 
     /** Extract the peer name from the given pipe advertisement name.
+     * @return   the peer name from the given pipe advertisement name.
+     * @param pipeName the pipe name
      */
     public static String getPeerNameFromBackChannelPipeName(String pipeName) {
 
@@ -417,6 +435,8 @@ public class JxtaCast implements PipeMsgListener, Runnable {
 
 
     /** Extract the peer ID from the given pipe advertisement name.
+     * @return   the peer ID from the given pipe advertisement name.
+     * @param pipeName the pipe name
      */
     public static String getPeerIdFromBackChannelPipeName(String pipeName) {
 
@@ -434,6 +454,7 @@ public class JxtaCast implements PipeMsgListener, Runnable {
 
     /**
      *  Send a Message down the output pipe.
+     * @param msg the message
      */
     public synchronized void sendMessage(Message msg) {
 
@@ -491,9 +512,9 @@ public class JxtaCast implements PipeMsgListener, Runnable {
             // new FileWrangler to handle it.  (But only if it's an a
             // MSG_FILE message from the original sender.)
             //
-            FileWrangler wrangler = (FileWrangler)wranglers.get(getMsgString(msg, FILEKEY));
+            FileWrangler wrangler = (FileWrangler) wranglers.get(getMsgString(msg, FILEKEY));
             if (wrangler == null  &&  msgType.equals(MSG_FILE)) {
-                wrangler = new InputFileWrangler(this, msg, fileSystem);
+                wrangler = new InputFileWrangler(this, msg);
                 wranglers.put(wrangler.key, wrangler);
             }
             if (wrangler == null)
@@ -566,7 +587,7 @@ public class JxtaCast implements PipeMsgListener, Runnable {
         // hang up the GUI while the file is loading.)
         //
         OutputFileWrangler wrangler = new OutputFileWrangler(this, file, caption);
-        sendFileQueue.addElement(wrangler);
+        sendFileQueue.add(wrangler);
     }
 
 
@@ -601,7 +622,7 @@ public class JxtaCast implements PipeMsgListener, Runnable {
      */
     protected void checkFileWranglers() {
 
-        Enumeration elements = wranglers.elements();;
+        Enumeration elements = wranglers.elements();
         FileWrangler wrangler;
 
         while (elements.hasMoreElements()) {
@@ -618,7 +639,7 @@ public class JxtaCast implements PipeMsgListener, Runnable {
      */
     protected void checkSendFileQueue() {
 
-        OutputFileWrangler wrangler = null;
+        OutputFileWrangler wrangler;
       
         // Yank the first wrangler from the queue, if there is one.
         // Put it in our collection of active wranglers, and start the
@@ -626,8 +647,7 @@ public class JxtaCast implements PipeMsgListener, Runnable {
         //
         if (sendFileQueue.isEmpty())
             return;
-        wrangler = (OutputFileWrangler)sendFileQueue.elementAt(0);
-        sendFileQueue.removeElementAt(0);
+        wrangler = (OutputFileWrangler)sendFileQueue.remove(0);
         if (wrangler != null) {
             wranglers.put(wrangler.key, wrangler);
             wrangler.sendFile();
@@ -639,6 +659,7 @@ public class JxtaCast implements PipeMsgListener, Runnable {
     /**
      * Register a JxtaCastEventListener.  Listeners are sent progress events while
      * sending and receiving files.
+     * @param listener the listener
      */
     public synchronized void addJxtaCastEventListener(JxtaCastEventListener listener) {
 
@@ -650,6 +671,7 @@ public class JxtaCast implements PipeMsgListener, Runnable {
 
     /**
      * Un-register a JxtaCastEventListener.
+     * @param listener the listener
      */
     public synchronized void removeJxtaCastEventListener(JxtaCastEventListener listener) {
 
@@ -659,6 +681,7 @@ public class JxtaCast implements PipeMsgListener, Runnable {
 
     /**
      * Send a JxtaCastEvent to all registered listeners.
+     * @param e the event
      */
     protected void sendJxtaCastEvent(JxtaCastEvent e) {
 
@@ -719,6 +742,7 @@ abstract class FileWrangler {
 
 
     /** Process a file transfer message.
+     * @param msg the message
      */
     public abstract void processMsg(Message msg);
 
@@ -728,15 +752,15 @@ abstract class FileWrangler {
     public abstract void bossCheck();
 
 
-    /** Create a unique key for this file transfer. */
+    /**
+     * Create a unique key for this file transfer.
+     * @param senderId the sender's id.
+     * @param filename the file name
+     * @return  a key a combination of the sender's PeerId, the file name, and a timestamp.
+     */
     public static String composeKey(String senderId, String filename) {
-
-        // The key is a combination of the sender's PeerId, the file name,
-        // and a timestamp.
-        String keyStr = senderId + "+" + filename + "+" + 
+        return senderId + "+" + filename + "+" +
                         String.valueOf(System.currentTimeMillis());
-
-        return keyStr;
     }
 
 
@@ -756,22 +780,22 @@ abstract class FileWrangler {
 
             // Create a message, fill it with our standard headers.
             Message msg = new Message();
-            jc.setMsgString(msg, jc.MESSAGETYPE, msgType);
-            jc.setMsgString(msg, jc.SENDERNAME,  jc.myPeer.getName());
-            jc.setMsgString(msg, jc.SENDERID,    jc.myPeer.getPeerID().toString());
-            jc.setMsgString(msg, jc.VERSION,     jc.version);
-            jc.setMsgString(msg, jc.FILEKEY,     key);
-            jc.setMsgString(msg, jc.FILENAME,    filename);
-            jc.setMsgString(msg, jc.FILESIZE,    String.valueOf(fdata.length));
+            JxtaCast.setMsgString(msg, JxtaCast.MESSAGETYPE, msgType);
+            JxtaCast.setMsgString(msg, JxtaCast.SENDERNAME,  jc.myPeer.getName());
+            JxtaCast.setMsgString(msg, JxtaCast.SENDERID,    jc.myPeer.getPeerID().toString());
+            JxtaCast.setMsgString(msg, JxtaCast.VERSION,     JxtaCast.version);
+            JxtaCast.setMsgString(msg, JxtaCast.FILEKEY,     key);
+            JxtaCast.setMsgString(msg, JxtaCast.FILENAME,    filename);
+            JxtaCast.setMsgString(msg, JxtaCast.FILESIZE,    String.valueOf(fdata.length));
 
             // If we've got a caption, store it in the first message.
             if (blockNum == 0  &&  caption != null)
-                jc.setMsgString(msg, jc.CAPTION, caption);
+                JxtaCast.setMsgString(msg, JxtaCast.CAPTION, caption);
 
             // Place the block info in the message.
-            jc.setMsgString(msg, jc.BLOCKNUM,    String.valueOf(blockNum));
-            jc.setMsgString(msg, jc.TOTALBLOCKS, String.valueOf(totalBlocks));
-            jc.setMsgString(msg, jc.BLOCKSIZE,   String.valueOf(myBlockSize));
+            JxtaCast.setMsgString(msg, JxtaCast.BLOCKNUM,    String.valueOf(blockNum));
+            JxtaCast.setMsgString(msg, JxtaCast.TOTALBLOCKS, String.valueOf(totalBlocks));
+            JxtaCast.setMsgString(msg, JxtaCast.BLOCKSIZE,   String.valueOf(myBlockSize));
 
             // Place the block of file data in the message.
             // If this is the last block, it's probably smaller than a full block.
@@ -780,11 +804,11 @@ abstract class FileWrangler {
             if (blockNum == totalBlocks - 1)
                 bSize = fdata.length - (blockNum * myBlockSize);
             ByteArrayMessageElement elem = new ByteArrayMessageElement(
-                jc.DATABLOCK, null, fdata, blockNum * myBlockSize, bSize, null);
+                JxtaCast.DATABLOCK, null, fdata, blockNum * myBlockSize, bSize, null);
             msg.replaceMessageElement(elem);
 
             // Send the message.
-            jc.logMsg("Sending: " + filename + "  block: " + (blockNum+1) +
+            JxtaCast.logMsg("Sending: " + filename + "  block: " + (blockNum+1) +
                                "  of: " + totalBlocks); 
             jc.sendMessage(msg);
 
@@ -793,9 +817,6 @@ abstract class FileWrangler {
         }
     }
 }
-
-
-
 
 
 
@@ -815,7 +836,9 @@ class OutputFileWrangler extends FileWrangler {
 
     /**
      * Constructor - Build a wrangler to process an outgoing file.
-     *
+     * @param jc   the cast object
+     * @param file  the file
+     * @param caption any caption
      */
     public OutputFileWrangler(JxtaCast jc, File file, String caption) {
 
@@ -850,10 +873,10 @@ class OutputFileWrangler extends FileWrangler {
         // They came from us!  Respond to ACK and REQ messages from peers
         // that are receiving this file from us.
         //
-        String msgType = jc.getMsgString(msg, jc.MESSAGETYPE);
-        if (msgType.equals(jc.MSG_FILE_ACK))
+        String msgType = JxtaCast.getMsgString(msg, JxtaCast.MESSAGETYPE);
+        if (msgType.equals(JxtaCast.MSG_FILE_ACK))
             processMsgAck(msg);
-        else if (msgType.equals(jc.MSG_FILE_REQ))
+        else if (msgType.equals(JxtaCast.MSG_FILE_REQ))
             processMsgReq(msg);
     }
 
@@ -870,8 +893,8 @@ class OutputFileWrangler extends FileWrangler {
         if (blocksSent > 0            &&
             blocksSent < totalBlocks  &&
             System.currentTimeMillis() - lastActivity > jc.trailBossPeriod + 500) {
-            jc.logMsg("bossCheck sending block.");
-            sendBlock(blocksSent++, jc.MSG_FILE);
+            JxtaCast.logMsg("bossCheck sending block.");
+            sendBlock(blocksSent++, JxtaCast.MSG_FILE);
             updateProgress();
         }
 
@@ -887,19 +910,20 @@ class OutputFileWrangler extends FileWrangler {
      *  Peers will send us an ACK message when they've received a block.
      *  When we get one (from any peer), for the last block we've sent,
      *  then we can send the next block.
+     * @param msg the ack message
      */
     private void processMsgAck(Message msg) {
 
-        int blockNum = Integer.parseInt(jc.getMsgString(msg, jc.BLOCKNUM));
+        int blockNum = Integer.parseInt(JxtaCast.getMsgString(msg, JxtaCast.BLOCKNUM));
 
-        jc.logMsg("Received ACK: " + filename + "  block " + (blockNum+1) +
-                  ", from " + jc.getMsgString(msg, jc.SENDERNAME));
+        JxtaCast.logMsg("Received ACK: " + filename + "  block " + (blockNum+1) +
+                  ", from " + JxtaCast.getMsgString(msg, JxtaCast.SENDERNAME));
 
         // If there are more blocks to send, send the next one now.
         int nextBlock = blockNum + 1;
         if (nextBlock == blocksSent  &&  nextBlock < totalBlocks) {
             blocksSent++;
-            sendBlock(nextBlock, jc.MSG_FILE);
+            sendBlock(nextBlock, JxtaCast.MSG_FILE);
             updateProgress();
         }
     }
@@ -909,10 +933,11 @@ class OutputFileWrangler extends FileWrangler {
      *
      *  A peer has requested a block of this file.  Send it out as a
      *  REQ_RESP 'request response' message.
+     * @param msg the message
      */
     private void processMsgReq(Message msg) {
 
-        int blockNum = Integer.parseInt(jc.getMsgString(msg, jc.BLOCKNUM));
+        int blockNum = Integer.parseInt(JxtaCast.getMsgString(msg, JxtaCast.BLOCKNUM));
 
         // If this is a request for a block we haven't sent yet, send the
         // next block as a normal MSG_FILE message, instead of as a REQ_RESP
@@ -922,27 +947,27 @@ class OutputFileWrangler extends FileWrangler {
         // to fill in their missing blocks.
         //
         if (blockNum >= blocksSent) {
-            jc.logMsg("Received " + jc.getMsgString(msg, jc.MESSAGETYPE) +
+            JxtaCast.logMsg("Received " + JxtaCast.getMsgString(msg, JxtaCast.MESSAGETYPE) +
                       ": " + filename + "  block " + (blockNum+1) +
-                      ", from " + jc.getMsgString(msg, jc.SENDERNAME));
-            sendBlock(blocksSent++, jc.MSG_FILE);
+                      ", from " + JxtaCast.getMsgString(msg, JxtaCast.SENDERNAME));
+            sendBlock(blocksSent++, JxtaCast.MSG_FILE);
             updateProgress();
             return;
         }
 
         // Send out the block, but only if the request was addressed to us or
         // to "any peer".
-        String reqToPeer = jc.getMsgString(msg, jc.REQTOPEER);
+        String reqToPeer = JxtaCast.getMsgString(msg, JxtaCast.REQTOPEER);
         if (reqToPeer.equals(jc.myPeer.getPeerID().toString())  ||
-            reqToPeer.equals(jc.REQ_ANYPEER)) {
+            reqToPeer.equals(JxtaCast.REQ_ANYPEER)) {
 
-            if (reqToPeer.equals(jc.REQ_ANYPEER))
-                jc.logMsg("Received REQ_ANYPEER: " + filename + "  block " +
-                          (blockNum+1) + ", from " + jc.getMsgString(msg, jc.SENDERNAME));
+            if (reqToPeer.equals(JxtaCast.REQ_ANYPEER))
+                JxtaCast.logMsg("Received REQ_ANYPEER: " + filename + "  block " +
+                          (blockNum+1) + ", from " + JxtaCast.getMsgString(msg, JxtaCast.SENDERNAME));
             else
-                jc.logMsg("Received FILE_REQ: " + filename + "  block " +
-                          (blockNum+1) + ", from " + jc.getMsgString(msg, jc.SENDERNAME));
-            sendBlock(blockNum, jc.MSG_FILE_REQ_RESP);
+                JxtaCast.logMsg("Received FILE_REQ: " + filename + "  block " +
+                          (blockNum+1) + ", from " + JxtaCast.getMsgString(msg, JxtaCast.SENDERNAME));
+            sendBlock(blockNum, JxtaCast.MSG_FILE_REQ_RESP);
         }
     }
 
@@ -967,10 +992,20 @@ class OutputFileWrangler extends FileWrangler {
         blocksSent = 0;
 
         // Allocate space to store the file data.
-        fdata = file.getData();
+        fdata = new byte[(int)file.length()];
+
+        // Read the file into memory.
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            BufferedInputStream bis = new BufferedInputStream(fis);
+            bis.read(fdata, 0, fdata.length);
+            fis.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 
         // Send out the first block;
-        sendBlock(blocksSent++, jc.MSG_FILE);
+        sendBlock(blocksSent++, JxtaCast.MSG_FILE);
         updateProgress();
     }
 
@@ -981,7 +1016,7 @@ class OutputFileWrangler extends FileWrangler {
 
         // Notify listeners of file progress.
         JxtaCastEvent e = new JxtaCastEvent();
-        e.transType   = e.SEND;
+        e.transType   = JxtaCastEvent.SEND;
         e.filename    = new String(filename);
         e.filepath    = new String(jc.fileSaveLoc);
         e.sender      = new String(sender);
@@ -1021,7 +1056,7 @@ class InputFileWrangler extends FileWrangler {
     long firstBlockTime;  // Timestamp when we received the first block message.
     long latestBlockTime; // Timestamp when we received the most recent block.
     long minTimeToWait;   // Minimum time to wait with no activity before requesting a block.
-    Hashtable fileSystem;
+
 
     /**
      * Constructor - Build a wrangler to process an incoming file.
@@ -1030,29 +1065,30 @@ class InputFileWrangler extends FileWrangler {
      * message in the sequence.  Any will do.  The message is not
      * processed from the constructor, so be sure to call processMsg() as
      * well.
+     * @param jc jxtacast
+     * @param msg the message
      */
-    public InputFileWrangler(JxtaCast jc, Message msg, Hashtable fileSystem) {
+    public InputFileWrangler(JxtaCast jc, Message msg) {
 
         this.jc = jc;
-        this.fileSystem = fileSystem;
         lastActivity = System.currentTimeMillis();
 
         // Get some header data that we only need once.
-        sender   = jc.getMsgString(msg, jc.SENDERNAME);
-        senderId = jc.getMsgString(msg, jc.SENDERID);
-        key      = jc.getMsgString(msg, jc.FILEKEY);
-        filename = jc.getMsgString(msg, jc.FILENAME);
+        sender   = JxtaCast.getMsgString(msg, JxtaCast.SENDERNAME);
+        senderId = JxtaCast.getMsgString(msg, JxtaCast.SENDERID);
+        key      = JxtaCast.getMsgString(msg, JxtaCast.FILEKEY);
+        filename = JxtaCast.getMsgString(msg, JxtaCast.FILENAME);
 
         // Get info about the blocks.
         blocksReceived = 0;
-        totalBlocks = Integer.parseInt(jc.getMsgString(msg, jc.TOTALBLOCKS));
-        myBlockSize = Integer.parseInt(jc.getMsgString(msg, jc.BLOCKSIZE));
+        totalBlocks = Integer.parseInt(JxtaCast.getMsgString(msg, JxtaCast.TOTALBLOCKS));
+        myBlockSize = Integer.parseInt(JxtaCast.getMsgString(msg, JxtaCast.BLOCKSIZE));
 
         // Allocate space to store the file data.  We also create an array
         // to check off the blocks as we process them, and a couple parallel arrays
         // to track who to ask for missing blocks.
         //
-        fdata = new byte[Integer.parseInt(jc.getMsgString(msg, jc.FILESIZE))];
+        fdata = new byte[Integer.parseInt(JxtaCast.getMsgString(msg, JxtaCast.FILESIZE))];
         blockIn = new boolean[totalBlocks];
         lastAck = new String[totalBlocks];
         askedOrig = new boolean[totalBlocks];
@@ -1068,12 +1104,12 @@ class InputFileWrangler extends FileWrangler {
      */
     public void processMsg(Message msg) {
 
-        String msgType = jc.getMsgString(msg, jc.MESSAGETYPE);
-        if (msgType.equals(jc.MSG_FILE)  ||  msgType.equals(jc.MSG_FILE_REQ_RESP))
+        String msgType = JxtaCast.getMsgString(msg, JxtaCast.MESSAGETYPE);
+        if (msgType.equals(JxtaCast.MSG_FILE)  ||  msgType.equals(JxtaCast.MSG_FILE_REQ_RESP))
             processMsgFile(msg);
-        else if (msgType.equals(jc.MSG_FILE_ACK))
+        else if (msgType.equals(JxtaCast.MSG_FILE_ACK))
             processMsgAck(msg);
-        else if (msgType.equals(jc.MSG_FILE_REQ))
+        else if (msgType.equals(JxtaCast.MSG_FILE_REQ))
             processMsgReq(msg);
     }
 
@@ -1130,15 +1166,16 @@ class InputFileWrangler extends FileWrangler {
 
 
     /** Process one incoming block of file data.
+     * @param msg the message to process
+     *
      */
     public void processMsgFile(Message msg) {
 
         lastActivity = System.currentTimeMillis();
 
         try {
-            int blockNum = Integer.parseInt(jc.getMsgString(msg, jc.BLOCKNUM));
-            String msgSender   = jc.getMsgString(msg, jc.SENDERNAME);
-            String msgSenderId = jc.getMsgString(msg, jc.SENDERID);
+            int blockNum = Integer.parseInt(JxtaCast.getMsgString(msg, JxtaCast.BLOCKNUM));
+            String msgSenderId = JxtaCast.getMsgString(msg, JxtaCast.SENDERID);
 
             // Have we already processed this block?  If we've received a
             // duplicate message, ignore it.
@@ -1146,7 +1183,7 @@ class InputFileWrangler extends FileWrangler {
             if (blockIn[blockNum] == true) {
                 // Log a msg, unless we were the sender.
                 if (!msgSenderId.equals(jc.myPeer.getPeerID().toString()));
-                    jc.logMsg("Duplicate block: " + filename + " block: " + (blockNum+1));
+                    JxtaCast.logMsg("Duplicate block: " + filename + " block: " + (blockNum+1));
                 return;
             }
 
@@ -1159,13 +1196,13 @@ class InputFileWrangler extends FileWrangler {
 
             // The caption is stored with the first block.
             if (blockNum == 0)
-                caption = jc.getMsgString(msg, jc.CAPTION);
+                caption = JxtaCast.getMsgString(msg, JxtaCast.CAPTION);
 
-            jc.logMsg("From " + sender + " - " + " < " + filename +
+            JxtaCast.logMsg("From " + sender + " - " + " < " + filename +
                       " > block: " + (blockNum+1) + " of " + totalBlocks);
 
             // Get the file data block, place it in our data array.
-            MessageElement elem = msg.getMessageElement(jc.DATABLOCK);
+            MessageElement elem = msg.getMessageElement(JxtaCast.DATABLOCK);
             if (elem == null)
                 return;
             byte dataBlock[] = elem.getBytes(false);
@@ -1187,7 +1224,7 @@ class InputFileWrangler extends FileWrangler {
             if (blocksReceived == totalBlocks) {
                 writeFile();
             }
-            else if (jc.getMsgString(msg, jc.MESSAGETYPE).equals(jc.MSG_FILE_REQ_RESP)) {
+            else if (JxtaCast.getMsgString(msg, JxtaCast.MESSAGETYPE).equals(JxtaCast.MSG_FILE_REQ_RESP)) {
 
                 // The REQ_RESP may not have been in response to a request from this
                 // peer.  But assume that if one peer is already requesting dropped
@@ -1198,7 +1235,7 @@ class InputFileWrangler extends FileWrangler {
 
             // Notify listeners of file progress.
             JxtaCastEvent e = new JxtaCastEvent();
-            e.transType   = e.RECV;
+            e.transType   = JxtaCastEvent.RECV;
             e.filename    = new String(filename);
             e.filepath    = new String(jc.fileSaveLoc);
             e.senderId    = new String(senderId);
@@ -1220,23 +1257,24 @@ class InputFileWrangler extends FileWrangler {
 
 
     /** Send an acknowledgement that we've received a file data block.
+     * @param msg the message to ack
      */
     private void sendAck(Message msg) {
 
         try {
             // Create and send and ACK message.
             Message ackMsg = new Message();
-            jc.setMsgString(ackMsg, jc.MESSAGETYPE, jc.MSG_FILE_ACK);
-            jc.setMsgString(ackMsg, jc.SENDERNAME,  jc.myPeer.getName());
-            jc.setMsgString(ackMsg, jc.SENDERID,    jc.myPeer.getPeerID().toString());
-            jc.setMsgString(ackMsg, jc.VERSION,     jc.version);
-            jc.setMsgString(ackMsg, jc.FILEKEY,     jc.getMsgString(msg, jc.FILEKEY));
-            jc.setMsgString(ackMsg, jc.FILENAME,    filename);
-            jc.setMsgString(ackMsg, jc.BLOCKNUM,    jc.getMsgString(msg, jc.BLOCKNUM));
+            JxtaCast.setMsgString(ackMsg, JxtaCast.MESSAGETYPE, JxtaCast.MSG_FILE_ACK);
+            JxtaCast.setMsgString(ackMsg, JxtaCast.SENDERNAME,  jc.myPeer.getName());
+            JxtaCast.setMsgString(ackMsg, JxtaCast.SENDERID,    jc.myPeer.getPeerID().toString());
+            JxtaCast.setMsgString(ackMsg, JxtaCast.VERSION,     JxtaCast.version);
+            JxtaCast.setMsgString(ackMsg, JxtaCast.FILEKEY,     JxtaCast.getMsgString(msg, JxtaCast.FILEKEY));
+            JxtaCast.setMsgString(ackMsg, JxtaCast.FILENAME,    filename);
+            JxtaCast.setMsgString(ackMsg, JxtaCast.BLOCKNUM,    JxtaCast.getMsgString(msg, JxtaCast.BLOCKNUM));
 
             // Send the ACK message.
-            int blockNum = Integer.parseInt(jc.getMsgString(msg, jc.BLOCKNUM));
-            jc.logMsg("Sending ACK: " + filename + "  block " + (blockNum+1));
+            int blockNum = Integer.parseInt(JxtaCast.getMsgString(msg, JxtaCast.BLOCKNUM));
+            JxtaCast.logMsg("Sending ACK: " + filename + "  block " + (blockNum+1));
             jc.sendMessage(ackMsg);
 
         } catch (Exception ex) {
@@ -1259,13 +1297,13 @@ class InputFileWrangler extends FileWrangler {
         try {
             // Create a message, fill it with key info, and the block number.
             Message reqMsg = new Message();
-            jc.setMsgString(reqMsg, jc.MESSAGETYPE, jc.MSG_FILE_REQ);
-            jc.setMsgString(reqMsg, jc.SENDERNAME,  jc.myPeer.getName());
-            jc.setMsgString(reqMsg, jc.SENDERID,    jc.myPeer.getPeerID().toString());
-            jc.setMsgString(reqMsg, jc.VERSION,     jc.version);
-            jc.setMsgString(reqMsg, jc.FILEKEY,     key);
-            jc.setMsgString(reqMsg, jc.FILENAME,    filename);
-            jc.setMsgString(reqMsg, jc.BLOCKNUM,    String.valueOf(blockNum));
+            JxtaCast.setMsgString(reqMsg, JxtaCast.MESSAGETYPE, JxtaCast.MSG_FILE_REQ);
+            JxtaCast.setMsgString(reqMsg, JxtaCast.SENDERNAME,  jc.myPeer.getName());
+            JxtaCast.setMsgString(reqMsg, JxtaCast.SENDERID,    jc.myPeer.getPeerID().toString());
+            JxtaCast.setMsgString(reqMsg, JxtaCast.VERSION,     JxtaCast.version);
+            JxtaCast.setMsgString(reqMsg, JxtaCast.FILEKEY,     key);
+            JxtaCast.setMsgString(reqMsg, JxtaCast.FILENAME,    filename);
+            JxtaCast.setMsgString(reqMsg, JxtaCast.BLOCKNUM,    String.valueOf(blockNum));
 
             // Who are we requesting it from?
             // If we've gotten an ACK for this block, ask that peer.  Then clear
@@ -1273,21 +1311,21 @@ class InputFileWrangler extends FileWrangler {
             //
             String reqTo = "last ACK";
             if (lastAck[blockNum] != null) {
-                jc.setMsgString(reqMsg, jc.REQTOPEER, lastAck[blockNum]);
+                JxtaCast.setMsgString(reqMsg, JxtaCast.REQTOPEER, lastAck[blockNum]);
                 lastAck[blockNum] = null;
 
             } else if (!askedOrig[blockNum]) {
 
                 // We haven't asked the original sender for this block yet, so
                 // ask him now.
-                jc.setMsgString(reqMsg, jc.REQTOPEER, senderId);
+                JxtaCast.setMsgString(reqMsg, JxtaCast.REQTOPEER, senderId);
                 askedOrig[blockNum] = true;
                 reqTo = "orig sender";
 
             } else {
 
                 // Ask any peer to respond.
-                jc.setMsgString(reqMsg, jc.REQTOPEER, jc.REQ_ANYPEER);
+                JxtaCast.setMsgString(reqMsg, JxtaCast.REQTOPEER, JxtaCast.REQ_ANYPEER);
                 reqTo = "ANYONE!";
             }
 
@@ -1296,7 +1334,7 @@ class InputFileWrangler extends FileWrangler {
             // from.  For now we'll send it out over the wire.  Everyone else
             // can just ignore it.
             //
-            jc.logMsg("Sending REQ to " + reqTo + ": " + filename +
+            JxtaCast.logMsg("Sending REQ to " + reqTo + ": " + filename +
                       "  block " + (blockNum+1)); 
             jc.sendMessage(reqMsg);
 
@@ -1345,19 +1383,20 @@ class InputFileWrangler extends FileWrangler {
      *  We'll keep track of the latest peer that sent an ACK for each block.
      *  If we don't get that block ourselves, we can request it from a peer
      *  that has it.
+     * @param msg the ack message
      */
     private void processMsgAck(Message msg) {
 
         // Ignore the ACK if it's from us.
-        String senderId = jc.getMsgString(msg, jc.SENDERID);
+        String senderId = JxtaCast.getMsgString(msg, JxtaCast.SENDERID);
         if (senderId.equals(jc.myPeer.getPeerID().toString()))
             return;
 
-        int blockNum = Integer.parseInt(jc.getMsgString(msg, jc.BLOCKNUM));
-        lastAck[blockNum] = jc.getMsgString(msg, jc.SENDERID);
+        int blockNum = Integer.parseInt(JxtaCast.getMsgString(msg, JxtaCast.BLOCKNUM));
+        lastAck[blockNum] = JxtaCast.getMsgString(msg, JxtaCast.SENDERID);
 
-        jc.logMsg("Received ACK: " + filename + "  block " +
-                  (blockNum+1) + ", from " + jc.getMsgString(msg, jc.SENDERNAME));
+        JxtaCast.logMsg("Received ACK: " + filename + "  block " +
+                  (blockNum+1) + ", from " + JxtaCast.getMsgString(msg, JxtaCast.SENDERNAME));
     }
 
 
@@ -1366,36 +1405,37 @@ class InputFileWrangler extends FileWrangler {
      *  A peer has requested a block of this file.  If the request is addressed
      *  to us, or to any peer, send the block out as a REQ_RESP 'request response'
      *  message.
+     * @param msg request message
      */
     private void processMsgReq(Message msg) {
 
         // If it's not addressed to us, or to "any peer", bail out.
-        String reqToPeer = jc.getMsgString(msg, jc.REQTOPEER);
+        String reqToPeer = JxtaCast.getMsgString(msg, JxtaCast.REQTOPEER);
         if (reqToPeer == null)
             return;
         if (!reqToPeer.equals(jc.myPeer.getPeerID().toString())  &&
-            !reqToPeer.equals(jc.REQ_ANYPEER))
+            !reqToPeer.equals(JxtaCast.REQ_ANYPEER))
             return;
 
         // If it's FROM us, bail out.  (It's an any peer req that we sent.)
-        String reqSender = jc.getMsgString(msg, jc.SENDERID);
+        String reqSender = JxtaCast.getMsgString(msg, JxtaCast.SENDERID);
         if (reqSender == null)
             return;
         if (reqSender.equals(jc.myPeer.getPeerID().toString()))
             return;
 
-        int blockNum = Integer.parseInt(jc.getMsgString(msg, jc.BLOCKNUM));
+        int blockNum = Integer.parseInt(JxtaCast.getMsgString(msg, JxtaCast.BLOCKNUM));
 
-        if (reqToPeer.equals(jc.REQ_ANYPEER))
-            jc.logMsg("Received REQ_ANYPEER: " + filename + "  block " +
-                      (blockNum+1) + ", from " + jc.getMsgString(msg, jc.SENDERNAME));
+        if (reqToPeer.equals(JxtaCast.REQ_ANYPEER))
+            JxtaCast.logMsg("Received REQ_ANYPEER: " + filename + "  block " +
+                      (blockNum+1) + ", from " + JxtaCast.getMsgString(msg, JxtaCast.SENDERNAME));
         else
-            jc.logMsg("Received FILE_REQ: " + filename + "  block " +
-                      (blockNum+1) + ", from " + jc.getMsgString(msg, jc.SENDERNAME));
+            JxtaCast.logMsg("Received FILE_REQ: " + filename + "  block " +
+                      (blockNum+1) + ", from " + JxtaCast.getMsgString(msg, JxtaCast.SENDERNAME));
 
         // Send the block, if we actually do have it.
         if (blockNum > 0  &&  blockNum < blockIn.length  &&  blockIn[blockNum] == true)
-            sendBlock(blockNum, jc.MSG_FILE_REQ_RESP);
+            sendBlock(blockNum, JxtaCast.MSG_FILE_REQ_RESP);
     }
 
 
@@ -1403,8 +1443,16 @@ class InputFileWrangler extends FileWrangler {
      */
     private void writeFile() {
 
-        jc.logMsg("*** WRITING FILE ***   " + jc.fileSaveLoc + filename);
-        File fos = new File(jc.fileSaveLoc + filename, fileSystem);
-        fos.writeData(fdata);
+        JxtaCast.logMsg("*** WRITING FILE ***   " + jc.fileSaveLoc + filename);
+
+        try {
+            FileOutputStream fos = new FileOutputStream(jc.fileSaveLoc + filename);
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
+            bos.write(fdata, 0, fdata.length);
+            bos.flush();
+            fos.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 }

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="dist" name="jxtacast">
+
+  <!-- ==================================================================== -->
+  <!-- set properties for this build                                        -->
+  <!-- ==================================================================== -->
+
+  <!-- global properties -->
+  <property name="project.name"     value="JxtaCast"/>
+  <property name="project.dir"      value="jxtacast"/>
+  <property name="app.name"         value="jxtacast"/>
+  <property name="src.dir"          value="src"/>
+  <property name="build.dir"        value="classes"/>
+  <property name="dist.dir"         value="dist"/>
+  <property name="api.dir"          value="apidoc"/>
+  <property name="refapi.dir"       value="refdoc"/>
+  <property name="doc.dir"          value="doc"/>
+
+  <property name="appjar.name"     value="${app.name}.jar"/>
+  <property name="appjar.path"     value="../../../${project.dir}/binding/java/${dist.dir}"/>
+  <property name="app.jar"         value="${appjar.path}/${appjar.name}"/>
+
+  <!-- path properties -->
+  <property name="platform.path"    value="../../../platform/binding/java"/>
+
+  <!-- jar names properties -->
+  <property name="jxta.jar"         value="${platform.path}/dist/jxta.jar"/>
+
+  <!-- javadoc properties -->
+  <property name="header"           value="Project JxtaCast"/>
+  <property name="windowtitle"      value="JXTA (TM) Technology 0.1 API Documentation (sample)"/>
+
+  <!-- ==================================================================== -->
+  <!-- Paths                                                                -->
+  <!-- ==================================================================== -->
+  <path id="jxta.libs.compile.classpath">
+    <pathelement location="${jxta.jar}"/>
+  </path>
+
+  <!-- ==================================================================== -->
+  <!-- Prepare the build process                                            -->
+  <!-- ==================================================================== -->
+  <target name="prepare">
+    <!-- Create the time stamp : not used yet ! -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile target -->
+    <mkdir dir="${build.dir}"/>
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Compile class files                                                  -->
+  <!-- ==================================================================== -->
+  <target name="compile" 
+          depends="prepare">
+    <!-- Compile the java code from ${src.dir} into ${build.dir} -->
+    <javac destdir="${build.dir}"
+           srcdir="${src.dir}"
+           deprecation="yes"
+           debug="on" >
+      <classpath refid="jxta.libs.compile.classpath" />
+    </javac>
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Generate jar file                                                    -->
+  <!-- ==================================================================== -->
+  <target name="jar"
+          depends="compile">
+    <!-- Create the ${dist.dir} directory -->
+    <mkdir dir="${dist.dir}"/>
+
+    <!-- Put everything in ${build.dir} into the jar file -->
+    <jar basedir="${build.dir}" jarfile="${app.jar}">
+      <fileset dir=".">
+        <include name="net/**/*.class"/>
+      </fileset>
+    </jar>
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Make Dist                                                            -->
+  <!-- ==================================================================== -->
+  <target name="dist"
+          depends="jar">
+    <!-- same as jar target -->
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Clean all                                                            -->
+  <!-- ==================================================================== -->
+  <target name="clean">
+    <!-- Delete the ${build.dir} and ${dist.dir} directory trees -->
+    <delete dir="${build.dir}"/>
+    <delete dir="${dist.dir}"/>
+    <delete dir="${pkg.dir}"/>
+    <delete dir="${doc.dir}"/>
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Clean all                                                            -->
+  <!-- ==================================================================== -->
+  <target name="clobber"
+          depends="clean">
+    <!-- same as clean target -->
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Help                                                                 -->
+  <!-- ==================================================================== -->
+  <target name="help">
+    <echo message="# Usage : ant [help] [all] [compile] [clean] [clobber] [jar] [dist] [javadoc]"/>
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Process all useful targets                                          -->
+  <!-- ==================================================================== -->
+  <target name="all">
+    <!-- Clean & Build -->
+    <antcall target="clean" />
+    <antcall target="jar" />
+    <antcall target="javadoc" />
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Generate Javadoc                                                     -->
+  <!-- ==================================================================== -->
+  <target name="javadoc">
+    <!-- Create the ${doc} directory -->
+    <mkdir dir="${doc.dir}"/>
+
+    <!-- Build the javadoc -->
+    <javadoc sourcepath="${src.dir}"
+	         classpathref="jxta.libs.compile.classpath" 
+	         packagenames="net.jxta.*"
+	         destdir="${doc.dir}" 
+	         header="${header}" 
+	         doctitle="${windowtitle}" 
+	         windowtitle="${windowtitle}"/>
+  </target>
+
+</project>

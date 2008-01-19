@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="dist" name="picshare">
+
+  <!-- ==================================================================== -->
+  <!-- set properties for this build                                        -->
+  <!-- ==================================================================== -->
+
+  <!-- global properties -->
+  <property name="project.name"     value="PicShare"/>
+  <property name="project.dir"      value="picshare"/>
+  <property name="app.name"         value="picshare"/>
+  <property name="src.dir"          value="src"/>
+  <property name="build.dir"        value="classes"/>
+  <property name="dist.dir"         value="dist"/>
+  <property name="api.dir"          value="apidoc"/>
+  <property name="refapi.dir"       value="refdoc"/>
+  <property name="doc.dir"          value="doc"/>
+
+  <property name="pkg.dir"          value="pkg"/>
+  <property name="pkg.lib.dir"      value="${pkg.dir}/lib"/>
+  <property name="pkg.app.dir"      value="${pkg.dir}/${app.name}"/>
+  <property name="pkg.name"         value="${app.name}"/>
+
+  <property name="appjar.name"     value="${app.name}.jar"/>
+  <property name="appjar.path"     value="${dist.dir}"/>
+  <property name="app.jar"         value="${appjar.path}/${appjar.name}"/>
+
+  <!-- path properties -->
+  <property name="platform.path"    value="../../../../../platform/binding/java"/>
+  <property name="security.path"    value="../../../../../security/binding/java"/>
+  <property name="jxtacast.path"    value="../../dist"/>
+
+  <!-- jar names properties -->
+  <property name="jxta.jar"         value="${platform.path}/dist/jxta.jar"/>
+  <property name="log4j.jar"        value="${platform.path}/lib/log4j.jar"/>
+  <property name="jxtasecurity.jar" value="${security.path}/dist/jxtasecurity.jar"/>
+  <property name="jxtaptls.jar"     value="${platform.path}/lib/jxtaptls.jar"/>
+  <property name="beep.jar"         value="${platform.path}/lib/beepcore.jar"/>  
+  <property name="minimalBC.jar"    value="${platform.path}/lib/bcprov-jdk14.jar"/>  
+  <property name="jetty.jar"        value="${platform.path}/lib/org.mortbay.jetty.jar"/>  
+  <property name="servlet.jar"      value="${platform.path}/lib/javax.servlet.jar"/>  
+  <property name="jxtacast.jar"     value="${jxtacast.path}/jxtacast.jar"/>
+
+  <!-- javadoc properties -->
+  <property name="header"           value="Project JxtaCast (Picshare Demo)"/>
+  <property name="windowtitle"      value="JXTA (TM) Technology 0.1 API Documentation (sample)"/>
+
+  <!-- ==================================================================== -->
+  <!-- Paths                                                                -->
+  <!-- ==================================================================== -->
+  <path id="jxta.libs.compile.classpath">
+    <pathelement location="${jxta.jar}"/>
+    <pathelement location="${jxtacast.jar}"/>
+  </path>
+
+  <path id="jxta.libs.run.classpath">
+    <pathelement location="${jxtasecurity.jar}"/>
+    <pathelement location="${jxtaptls.jar}"/>
+  </path>
+
+  <path id="other.libs.run.classpath">
+    <pathelement location="${log4j.jar}"/>
+    <pathelement location="${beep.jar}"/>
+    <pathelement location="${minimalBC.jar}"/>
+    <pathelement location="${cryptix32.jar}"/>
+    <pathelement location="${cryptixasn1.jar}"/>
+    <pathelement location="${jetty.jar}"/>
+    <pathelement location="${servlet.jar}"/>
+  </path>
+
+  <path id="jxta.picshare.run.classpath">
+    <pathelement location="${app.jar}"/>
+    <path refid="jxta.libs.compile.classpath" />
+    <path refid="jxta.libs.run.classpath" />
+    <path refid="other.libs.run.classpath" />
+  </path>
+
+  <!-- ==================================================================== -->
+  <!-- Prepare the build process                                            -->
+  <!-- ==================================================================== -->
+  <target name="prepare">
+    <!-- Create the time stamp : not used yet ! -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile target -->
+    <mkdir dir="${build.dir}"/>
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Copy images                                                          -->
+  <!-- ==================================================================== -->
+  <target name="copy-images">
+    <!-- Add application images -->
+    <mkdir dir="${build.dir}/net/jxta/picshare/"/>
+    <copy todir="${build.dir}/net/jxta/picshare" >
+    <fileset dir="${src.dir}/net/jxta/picshare" >
+      <include name="**/*.gif"/>
+      <include name="**/*.jpg"/>
+    </fileset>
+    </copy>
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Compile class files                                                  -->
+  <!-- ==================================================================== -->
+  <target name="compile" 
+          depends="prepare, copy-images">
+    <!-- Compile the java code from ${src.dir} into ${build.dir} -->
+    <javac destdir="${build.dir}"
+           srcdir="${src.dir}"
+           deprecation="yes"
+           debug="on" >
+      <classpath refid="jxta.libs.compile.classpath" />
+    </javac>
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Generate jar file                                                    -->
+  <!-- ==================================================================== -->
+  <target name="jar"
+          depends="compile">
+    <!-- Create the ${dist.dir}/lib directory -->
+    <mkdir dir="${dist.dir}"/>
+
+    <!-- Put everything in ${build.dir} into the jar file -->
+    <jar basedir="${build.dir}" jarfile="${app.jar}">
+      <fileset dir=".">
+        <include name="net/**/*.class"/>
+        <!-- take GIF & JPG files -->
+        <include name="net/**/*.gif"/> 
+        <include name="net/**/*.jpg"/> 
+      </fileset>
+    </jar>
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Make Dist                                                            -->
+  <!-- ==================================================================== -->
+  <target name="dist"
+          depends="jar">
+    <!-- same as jar target -->
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Clean all                                                            -->
+  <!-- ==================================================================== -->
+  <target name="clean">
+    <!-- Delete the ${build.dir} and ${dist.dir} directory trees -->
+    <delete dir="${build.dir}"/>
+    <delete dir="${dist.dir}"/>
+    <delete dir="${pkg.dir}"/>
+    <delete dir="${doc.dir}"/>
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Clean all                                                            -->
+  <!-- ==================================================================== -->
+  <target name="clobber"
+          depends="clean">
+    <!-- same as clean target -->
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Help                                                                 -->
+  <!-- ==================================================================== -->
+  <target name="help">
+    <echo message="# Usage : ant [help] [all] [run] [compile] [clean] [clobber] [jar] [pkg] [dist] [javadoc]"/>
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Process all useful targets                                          -->
+  <!-- ==================================================================== -->
+  <target name="all">
+    <!-- Clean & Build -->
+    <antcall target="clean" />
+    <antcall target="jar" />
+    <antcall target="pkg" />
+    <antcall target="javadoc" />
+  </target>
+  
+  <!-- ==================================================================== -->
+  <!-- Normal run                                                           -->
+  <!-- ==================================================================== -->
+  <target name="run"
+          depends="jar">
+    <!-- Run -->
+    <java classname="net.jxta.picshare.PicShare" 
+          fork="yes"> 
+      <sysproperty key="net.jxta.tls.principal" value="password"/>
+      <sysproperty key="net.jxta.tls.password" value="password"/>
+      <sysproperty key="JXTA_HOME" value="p1"/>
+      <classpath refid="jxta.picshare.run.classpath"/>
+    </java>
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Generate Javadoc                                                     -->
+  <!-- ==================================================================== -->
+  <target name="javadoc">
+    <!-- Create the ${doc} directory -->
+    <mkdir dir="${doc.dir}"/>
+
+    <!-- Build the javadoc -->
+    <javadoc sourcepath="${src.dir}"
+	         classpathref="jxta.libs.compile.classpath" 
+	         packagenames="net.jxta.*"
+	         destdir="${doc.dir}" 
+	         header="${header}" 
+	         doctitle="${windowtitle}" 
+	         windowtitle="${windowtitle}"/>
+  </target>
+
+  <!-- ==================================================================== -->
+  <!-- Generate Zip Package                                                 -->
+  <!-- ==================================================================== -->
+  <target name="pkg"
+          depends="jar">
+    <!-- Create the ${pkg} directories -->
+    <mkdir dir="${pkg.dir}"/>
+    <mkdir dir="${pkg.lib.dir}"/>
+    <mkdir dir="${pkg.app.dir}/"/>
+    
+    <!-- Copy libraries -->
+    <copy file="${app.jar}"           todir="${pkg.app.dir}"/>
+    <copy file="${jxtacast.jar}"      todir="${pkg.app.dir}"/>
+    <copy file="${jxta.jar}"          todir="${pkg.lib.dir}"/>
+    <copy file="${log4j.jar}"         todir="${pkg.lib.dir}"/>
+    <copy file="${jxtasecurity.jar}"  todir="${pkg.lib.dir}"/>
+    <copy file="${jxtaptls.jar}"      todir="${pkg.lib.dir}"/>
+    <copy file="${beep.jar}"          todir="${pkg.lib.dir}"/>
+    <copy file="${beep.jar}"          todir="${pkg.lib.dir}"/>
+    <copy file="${cryptix32.jar}"     todir="${pkg.lib.dir}"/>
+    <copy file="${cryptixasn1.jar}"   todir="${pkg.lib.dir}"/>
+    
+	<!-- Generate zip package -->
+    <zip zipfile="${pkg.dir}/${pkg.name}.zip">
+      <zipfileset dir="${pkg.lib.dir}" prefix="lib" />
+      <zipfileset dir="${pkg.app.dir}" prefix="${app.name}"/>
+    </zip>
+     
+  </target>
+
+</project>
