@@ -17,11 +17,11 @@
   <property name="doc.dir"          value="doc"/>
 
   <property name="appjar.name"     value="${app.name}.jar"/>
-  <property name="appjar.path"     value="../../../${project.dir}/binding/java/${dist.dir}"/>
+  <property name="appjar.path"     value="${dist.dir}"/>
   <property name="app.jar"         value="${appjar.path}/${appjar.name}"/>
 
   <!-- path properties -->
-  <property name="platform.path"    value="../../../platform/binding/java"/>
+  <property name="platform.path"    value="../../../jxta-jxse"/>
 
   <!-- jar names properties -->
   <property name="jxta.jar"         value="${platform.path}/dist/jxta.jar"/>

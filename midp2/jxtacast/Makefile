@@ -17,7 +17,7 @@ else
 endif
 
 ifeq ($(JXTACORELIB),)
- JXTACORELIB =$(TOP)/../../../platform/binding/java/dist/jxta.jar
+ JXTACORELIB =../../../jxta-jxse/dist/jxta.jar
 endif
 
 JAVA          = $(JAVAHOMEBIN)java
