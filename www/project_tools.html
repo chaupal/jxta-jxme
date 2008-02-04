@@ -1,60 +1,49 @@
-</dd>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+</head>
+<body>
 <script>document.getElementById("main").parentNode.style.display="none";</script>
-<dd id=menubar>
-  <!-- menubar for the main site -->
+<dd id="menubar"><!-- menubar for the main site -->
   <ul id="main-menubar">
-    <li>
-      <a href="#">Downloads</a>
+    <li> <a href="#">Downloads</a>
       <ul>
-        <li>
-          <a href="http://download.jxta.org/build/release/jxme/2.1.3/">2.1.3</a>
+        <li> <a
+ href="http://download.jxta.org/build/release/jxme/2.1.3/">2.1.3</a> </li>
+      </ul>
+    </li>
+    <li> <a href="/servlets/ProjectNewsList">Announcements</a> </li>
+    <li> <a href="/servlets/ProjectMailingListList">Mailing lists</a> </li>
+    <li> <a
+ href="http://forums.java.net/jive/category.jspa?categoryID=34">Discussion
+forum</a> </li>
+    <li> <a href="#">Developing JXME</a>
+      <ul>
+        <li> <a href="http://jxta-spec.dev.java.net/">JXTA
+Specification</a> </li>
+        <li> <a
+ href="https://jxta-jxme.dev.java.net/source/browse/jxta-jxme/">Subversion</a>
         </li>
       </ul>
     </li>
-    <li>
-      <a href="/servlets/ProjectNewsList">Announcements</a>
+    <li> <a
+ href="https://jxta-jxme.dev.java.net/servlets/ProjectMemberList">Membership</a>
     </li>
+    <li> <a href="/issues/">IssueTracker</a> </li>
     <li>
-      <a href="/servlets/ProjectMailingListList">Mailing lists</a>
-    </li>
-    <li>
-      <a href="http://forums.java.net/jive/category.jspa?categoryID=34">Discussion forum</a>
-    </li>
-    <li>
-      <a href="#">Developing JXME</a>
-      <ul>
-        <li>
-          <a href="http://jxta-spec.dev.java.net/">JXTA Specification</a>
-        </li>
-        <li>
-          <a href="https://jxta-c.dev.java.net/source/browse/jxta-jxme/">Subversion</a>
-        </li>
-      </ul>
-    </li>
-    <li>
-      <a href="https://jxta-c.dev.java.net/servlets/ProjectMemberList">Membership</a>
-    </li>
-    <li>
-      <a href="/issues/">IssueTracker</a>
-    </li>
-    <li>
-      <form name="ProjectIssuesForm" method="get" action="/issues/show_bug.cgi" style="margin-left:2em">
-        <input type="submit" value="Go to" /> # <input name="id" size="3" />
-      </form>
+      <form name="ProjectIssuesForm" method="get"
+ action="/issues/show_bug.cgi" style="margin-left: 2em;"> <input
+ value="Go to" type="submit"> # <input name="id" size="3"> </form>
     </li>
   </ul>
-
-<script>
+  <script>
 var info = {
   title: "JXME"
 };
-</script>
-
-<script src="http://jxta.dev.java.net/zone-bindings.js"></script>
-<script src="http://jxta.dev.java.net/theme.js"></script>
-
-<!-- create the location bar short-cut -->
-<script>
+  </script>
+  <script src="http://jxta.dev.java.net/zone-bindings.js"></script>
+  <script src="http://jxta.dev.java.net/theme.js"></script><!-- create the location bar short-cut -->
+  <script>
 addLoadEvent(function() {
 	var html = [];
 
@@ -85,12 +74,8 @@ addLoadEvent(function() {
 	var logobox = document.getElementById("logo-box");
 	logobox.parentNode.insertBefore(div,logobox);
 });
-</script>
-
-
-<!-- the following code is required by statcounter for project GlassFish. REMOVE ONLY if this file is included in a project other than GlassFish -->
-<!-- Start of StatCounter Code -->
-<!-- JXTA is not using it
+  </script><!-- the following code is required by statcounter for project GlassFish. REMOVE ONLY if this file is included in a project other than GlassFish -->
+<!-- Start of StatCounter Code --><!-- JXTA is not using it
 <script type="text/javascript" language="javascript">
 var sc_project=1289830;
 var sc_invisible=1;
@@ -104,4 +89,6 @@ var sc_https=1;
 src="https://c12.statcounter.com/counter.php?sc_project=1289830&amp;amp;java=0&amp;amp;security=ae5ef92d&amp;amp;invisible=1"
 alt="stats count" border="0"></a> </noscript>
 -->
-<!-- End of StatCounter Code -->
+<!-- End of StatCounter Code --></dd>
+</body>
+</html>
