@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+  <title>JXTA for J2ME 2.0 Build Instructions</title>
+</head>
+<body>
+<h1 align="center">Building JXTA for Java ME</h1>
+<p>This page describes the software requirements, and the
+process of building and running JXTA for Java ME.</p>
+<h3>Requirements</h3>
+<p>JXTA for Java ME has been built successfully on the following
+operating systems:</p>
+<ul type="disc">
+  <li>Linux (kernel 2.4)</li>
+  <li>Solaris 8</li>
+  <li>Microsoft Windows 98 Second Edition, Microsoft Windows NT,
+Microsoft Windows 2000 and Microsoft Windows XP.</li>
+</ul>
+<p>You will need</p>
+<ul>
+  <li><a href="http://java.sun.com/products/j2mewtoolkit/">Java<sup><font
+ size="-2">TM</font></sup> 2 Platform Micro Edition, Wireless
+Toolkit</a> Use Wireless Toolkit 1.0.4_1 for Microsoft Windows 98 and
+Microsoft Windows NT and Wireless Toolkit 2.1 for all other operating
+systems</li>
+  <li><a href="http://java.sun.com/products/jdk/1.3.1">Java<sup><font
+ size="-2">TM</font></sup> 2 SDK, Standard Edition, v 1.3.1</a> or
+later.</li>
+  <li><a href="http://jakarta.apache.org/ant/index.html">Ant</a>. The
+    <code>ant</code> directory should be writeable, because we build
+and
+install an extension to <code>ant</code> for updating the
+    <code>MIDlet-Jar-Size</code> property in the <code>JAD</code>
+file.</li>
+</ul>
+<p>Once you have installed the requisite software listed above, set
+the following environment variables:</p>
+<h3>Environment variables</h3>
+<table border="1" width="80%">
+  <tbody>
+    <tr>
+      <td>HOME</td>
+      <td>Path to your home directory</td>
+    </tr>
+    <tr>
+      <td>JAVA_HOME</td>
+      <td>Path to JDK home</td>
+    </tr>
+    <tr>
+      <td>ANT_HOME</td>
+      <td>Path to Ant home</td>
+    </tr>
+    <tr>
+      <td>MIDP_HOME</td>
+      <td>Path to J2ME Wireless Toolkit home</td>
+    </tr>
+  </tbody>
+</table>
+<h3>Getting the source</h3>
+<p>Check out JXTA for Java ME source from jxta-jxme.dev.java.net using
+svn<a href="http://cvshome.org"></a>. Subversion clients for various
+platforms
+can be downloaded from the subversion <a
+ href="http://subversion.tigris.org/">home</a> page<span
+ style="text-decoration: underline;"></span>. Use
+commands similar to the following :<br>
+</p>
+<b><span style="font-family: monospace;">svn checkout
+https://jxta-jxme.dev.java.net/svn/jxta-jxme/trunk jxta-jxme --username
+username</span></b>
+<h3>Building</h3>
+<ol>
+  <li><code>The proxy version requires jxta-jxse.dev.java.net, so be
+sure to check out and follow the build instruction for
+http://jxta-jxse.dev.java.net</code></li>
+</ol>
+<ul>
+  <li>MIDP2 (proxyless)<br>
+  </li>
+  <ul>
+    <li>cd midp2</li>
+    <li>ant</li>
+  </ul>
+  <li>MIDP2 (proxy based)<br>
+  </li>
+  <ul>
+    <li>cd midp</li>
+    <li>ant</li>
+  </ul>
+</ul>
+<ul>
+  <li>CDC 1.1<br>
+  </li>
+  <ul>
+    <li>cd cdc/proto</li>
+  </ul>
+  <ul>
+    <li>ant<br>
+    </li>
+  </ul>
+</ul>
+<hr>
+</body>
+</html>
