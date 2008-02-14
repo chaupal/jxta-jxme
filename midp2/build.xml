@@ -9,7 +9,7 @@
 
   <property name="src"                      value="src"/>
   <property name="demo"                     value="demo"/>
-  <property name="jxtacast"                     value="jxtacast"/>
+  <property name="jxtacast"                 value="jxtacast"/>
 
   <property name="test"                     value="test"/>
   <property name="test_classes"             value="test/classes"/>
@@ -40,7 +40,7 @@
 
   <target name="compile_cldc" depends="prepare" >
     <javac destdir="${classes_cldc_unverified}"
-	    srcdir="${src}:${demo}:${jxtacast}"
+	    srcdir="${src}:${demo}"
 	   bootclasspath="${cldc_lib}"
 	   classpath="${midp_lib}"
 	   debug="${debug}"
