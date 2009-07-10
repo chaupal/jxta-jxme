@@ -229,22 +229,21 @@ public class IncomingUnicastServer implements Runnable {
                         break;
                     }
                 } catch (InterruptedIOException woken) {
-                    continue;
-                }
-                catch (IOException e1) {
-                    if (closed) {
-                        break;
-                    }
+                    Thread.interrupted();
+                } catch (IOException e1) {
                     if (LOG.isEnabledFor(Level.WARN)) {
                         LOG.warn("[1] ServerSocket.accept() failed on " + serverSocket.getInetAddress() + ":" + serverSocket.getLocalPort(), e1);
                     }
-                    continue;
-                } catch (SecurityException e2) {
                     if (closed) {
                         break;
                     }
+                    continue;
+                } catch (SecurityException e2) {
                     if (LOG.isEnabledFor(Level.WARN)) {
                         LOG.warn("[2] ServerSocket.accept() failed on " + serverSocket.getInetAddress() + ":" + serverSocket.getLocalPort(), e2);
+                    }
+                    if (closed) {
+                        break;
                     }
                     continue;
                 }
@@ -276,14 +275,12 @@ public class IncomingUnicastServer implements Runnable {
                         // Let that client hang a bit; there's nothing
                         // we can do right now.
                         Thread.sleep(2000);
-
                         inputSocket.close();
                     } catch (Throwable any) {// There's nothing we can do and to die is certainly
                         // not an option for this thread.
                         // Avoid the log, we may still be oom.
                     }
-                }
-                catch (Throwable all) {
+                } catch (Throwable all) {
                     // Make sure the socket is closed. Since we failed to
                     // put a TcpConnection wrapper around it, it belongs
                     // to us.
@@ -308,16 +305,13 @@ public class IncomingUnicastServer implements Runnable {
             } finally {
                 synchronized (this) {
                     closed = true;
-
                     ServerSocket temp = serverSocket;
-
                     serverSocket = null;
 
                     if (null != temp) {
                         try {
                             temp.close();
                         } catch (IOException ignored) {
-                            ;
                         }
                     }
                     acceptThread = null;
